@@ -12,7 +12,8 @@ LABEL=com.willowfan.engine
 cd /
 mkdir -p /Library/PrivilegedHelperTools
 PLIST_TEMP=$(mktemp "$PLIST_PATH.XXXXXX")
-trap 'rm -f "$PLIST_TEMP"' EXIT
+BOOTSTRAP_ERROR=$(mktemp)
+trap 'rm -f "$PLIST_TEMP" "$BOOTSTRAP_ERROR"' EXIT
 # Use only macOS system tools; installing the app does not require Python or Xcode.
 /usr/bin/plutil -create xml1 "$PLIST_TEMP"
 /usr/bin/plutil -insert Label -string "$LABEL" "$PLIST_TEMP"
@@ -33,5 +34,15 @@ install -o root -g wheel -m 755 "$ENGINE_SOURCE" "$ENGINE_DEST"
 mv -f "$PLIST_TEMP" "$PLIST_PATH"
 touch /Library/Logs/WillowFan.log
 chmod 644 /Library/Logs/WillowFan.log
-launchctl bootstrap system "$PLIST_PATH"
+# launchd may still be finishing bootout when bootstrap first runs.
+# Retrying the registration does not start an additional service instance.
+BOOTSTRAPPED=false
+for attempt in {1..20}; do
+    if launchctl bootstrap system "$PLIST_PATH" 2>"$BOOTSTRAP_ERROR"; then
+        BOOTSTRAPPED=true
+        break
+    fi
+    sleep 0.5
+done
+if [[ "$BOOTSTRAPPED" != true ]]; then cat "$BOOTSTRAP_ERROR" >&2; exit 1; fi
 echo 'WillowFan control service installed.'
