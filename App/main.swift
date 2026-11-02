@@ -126,38 +126,9 @@ func fillWidth(_ stack: NSStackView) {
     for view in stack.arrangedSubviews { view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true }
 }
 
-/// A single willow leaf with an open vein, legible at the menu bar's 18 pt size.
+/// Approved concept A: two willow leaves enclosing recirculating airflow.
 func leafIcon(size: CGFloat, template: Bool) -> NSImage {
-    let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { _ in
-        let leaf = NSBezierPath()
-        leaf.move(to: NSPoint(x: 0.18, y: 0.14))
-        leaf.curve(to: NSPoint(x: 0.87, y: 0.90), controlPoint1: NSPoint(x: 0.12, y: 0.65), controlPoint2: NSPoint(x: 0.54, y: 0.89))
-        leaf.curve(to: NSPoint(x: 0.18, y: 0.14), controlPoint1: NSPoint(x: 0.91, y: 0.43), controlPoint2: NSPoint(x: 0.63, y: 0.10))
-        leaf.close()
-        let vein = NSBezierPath()
-        vein.move(to: NSPoint(x: 0.23, y: 0.20))
-        vein.curve(to: NSPoint(x: 0.77, y: 0.79), controlPoint1: NSPoint(x: 0.41, y: 0.49), controlPoint2: NSPoint(x: 0.61, y: 0.66))
-        vein.curve(to: NSPoint(x: 0.23, y: 0.20), controlPoint1: NSPoint(x: 0.58, y: 0.59), controlPoint2: NSPoint(x: 0.36, y: 0.35))
-        vein.close()
-        leaf.append(vein)
-        leaf.windingRule = .evenOdd
-        let transform = NSAffineTransform()
-        transform.scale(by: size)
-        leaf.transform(using: transform as AffineTransform)
-        (template ? NSColor.black : Palette.accent).setFill()
-        leaf.fill()
-        let stem = NSBezierPath()
-        stem.move(to: NSPoint(x: size * 0.10, y: size * 0.07))
-        stem.curve(to: NSPoint(x: size * 0.26, y: size * 0.24), controlPoint1: NSPoint(x: size * 0.16, y: size * 0.14), controlPoint2: NSPoint(x: size * 0.20, y: size * 0.18))
-        stem.lineWidth = size * 0.065
-        stem.lineCapStyle = .round
-        (template ? NSColor.black : Palette.accent).setStroke()
-        stem.stroke()
-        return true
-    }
-    image.isTemplate = template
-    image.accessibilityDescription = "柳叶"
-    return image
+    WillowMark.image(size: size, template: template, color: Palette.accent)
 }
 
 // MARK: - Model

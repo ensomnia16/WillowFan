@@ -19,8 +19,10 @@ install -m 755 "$ROOT/Scripts/install-service.sh" "$CONTENTS/Resources/install-s
 mkdir -p "$CONTENTS/Frameworks"
 ditto "$SPARKLE/Sparkle.framework" "$CONTENTS/Frameworks/Sparkle.framework"
 swiftc -O -target arm64-apple-macos13.0 -framework AppKit -framework ApplicationServices -F "$SPARKLE" -framework Sparkle \
-    -Xlinker -rpath -Xlinker @executable_path/../Frameworks "$ROOT/App/"*.swift -o "$CONTENTS/MacOS/WillowFan"
-swift "$ROOT/Scripts/make-icon.swift" "$ROOT/build.noindex/icon-1024.png"
+    -Xlinker -rpath -Xlinker @executable_path/../Frameworks "$ROOT/App/"*.swift "$ROOT/Shared/"*.swift -o "$CONTENTS/MacOS/WillowFan"
+swiftc -O -target arm64-apple-macos13.0 -framework AppKit "$ROOT/Shared/WillowMark.swift" "$ROOT/Scripts/make-icon.swift" -o "$ROOT/build.noindex/make-icon"
+"$ROOT/build.noindex/make-icon" "$ROOT/build.noindex/icon-1024.png" "$ROOT/build.noindex/WillowMark.svg"
+install -m 644 "$ROOT/build.noindex/WillowMark.svg" "$CONTENTS/Resources/WillowMark.svg"
 ICONSET="$ROOT/build.noindex/WillowFan.iconset"
 mkdir -p "$ICONSET"
 for pixel in 16 32 128 256 512; do
@@ -30,8 +32,8 @@ for point in 16 32 128 256 512; do
     pixel=$((point * 2))
     sips -s format png -z "$pixel" "$pixel" "$ROOT/build.noindex/icon-1024.png" --out "$ICONSET/icon_${point}x${point}@2x.png" >/dev/null
 done
-iconutil -c icns "$ICONSET" -o "$CONTENTS/Resources/WillowFanBright.icns"
-rm -f "$CONTENTS/Resources/WillowFan.icns"
+iconutil -c icns "$ICONSET" -o "$CONTENTS/Resources/WillowFan.icns"
+rm -f "$CONTENTS/Resources/WillowFanBright.icns"
 
 cat > "$CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -44,7 +46,7 @@ cat > "$CONTENTS/Info.plist" <<PLIST
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>$VERSION</string>
 <key>CFBundleVersion</key><string>$BUILD_NUMBER</string>
-<key>CFBundleIconFile</key><string>WillowFanBright</string>
+<key>CFBundleIconFile</key><string>WillowFan</string>
 <key>LSUIElement</key><true/>
 <key>NSHumanReadableCopyright</key><string>© 2026 ensomnia16</string>
 <key>CFBundleDevelopmentRegion</key><string>zh_CN</string>
