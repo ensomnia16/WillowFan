@@ -1,0 +1,10 @@
+.DS_Store
+/work/
+/outputs/
+/build.noindex/
+/.deps.noindex/
+/Engine/target/
+*.dSYM/
+*.private-key
+*.p12
+*.mobileprovision

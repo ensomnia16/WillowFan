@@ -1,0 +1,11 @@
+[package]
+name = "macfan"
+version = "0.1.0"
+edition = "2024"
+description = "Constant-temperature fan control for Apple Silicon MacBooks: set one target temperature, an adaptive PI controller does the rest"
+license = "MIT"
+repository = "https://github.com/Jeamee/macfan"
+keywords = ["macos", "fan", "smc", "apple-silicon", "thermal"]
+categories = ["command-line-utilities"]
+
+[dependencies]

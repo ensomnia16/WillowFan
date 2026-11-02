@@ -1,0 +1,27 @@
+name: Build and check
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable && rustup target add aarch64-apple-darwin
+      - name: Check control and unlock logic
+        run: bash Scripts/test.sh
+      - name: Build app
+        run: bash Scripts/build.sh
+      - name: Package artifact
+        run: ditto -c -k --keepParent build.noindex/柳风.app build.noindex/WillowFan-build.zip
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: WillowFan-build
+          path: build.noindex/WillowFan-build.zip
+          retention-days: 7
