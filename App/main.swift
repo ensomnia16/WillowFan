@@ -625,12 +625,11 @@ final class FanController: NSViewController {
     private func makeOverview() -> NSView {
         let page = NSView()
         let title = label("散热监控", size: 24, weight: .semibold)
-        let heading = hstack([title, spacer()])
 
         let degree = telemetryLabel("°C")
         let temperature = hstack([temperatureLabel, degree, spacer(), heroDetail], spacing: 5)
         temperature.alignment = .firstBaseline
-        thermalTrend.heightAnchor.constraint(equalToConstant: 130).isActive = true
+        thermalTrend.heightAnchor.constraint(greaterThanOrEqualToConstant: 130).isActive = true
         let timeline = hstack([telemetryLabel("2 分钟前"), spacer(), telemetryLabel("现在")])
         let fanStack = vstack([
             sectionHeading("风扇转速", symbol: "fanblades", trailing: telemetryLabel("转速 / 硬件范围")),
@@ -675,20 +674,22 @@ final class FanController: NSViewController {
         right.setCustomSpacing(3, after: slider)
         fillWidth(right)
 
+        let headingRule = SeparatorLine()
         let rule = SeparatorLine()
-        let layout = vstack([heading, SeparatorLine()], spacing: 11)
-        fillWidth(layout)
-        for item in [layout, left, rule, right] {
+        for item in [title, headingRule, left, rule, right] {
             item.translatesAutoresizingMaskIntoConstraints = false
             page.addSubview(item)
         }
         NSLayoutConstraint.activate([
-            layout.leadingAnchor.constraint(equalTo: page.leadingAnchor, constant: 20),
-            layout.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -20),
-            layout.topAnchor.constraint(equalTo: page.topAnchor, constant: 14),
-            left.leadingAnchor.constraint(equalTo: layout.leadingAnchor),
-            left.topAnchor.constraint(equalTo: layout.bottomAnchor, constant: 14),
-            right.trailingAnchor.constraint(equalTo: layout.trailingAnchor),
+            title.leadingAnchor.constraint(equalTo: page.leadingAnchor, constant: 20),
+            title.topAnchor.constraint(equalTo: page.topAnchor, constant: 14),
+            title.heightAnchor.constraint(equalToConstant: title.intrinsicContentSize.height),
+            headingRule.leadingAnchor.constraint(equalTo: title.leadingAnchor),
+            headingRule.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -20),
+            headingRule.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 11),
+            left.leadingAnchor.constraint(equalTo: headingRule.leadingAnchor),
+            left.topAnchor.constraint(equalTo: headingRule.bottomAnchor, constant: 14),
+            right.trailingAnchor.constraint(equalTo: headingRule.trailingAnchor),
             right.topAnchor.constraint(equalTo: left.topAnchor),
             left.widthAnchor.constraint(equalTo: right.widthAnchor),
             left.trailingAnchor.constraint(equalTo: rule.leadingAnchor, constant: -16),
@@ -696,7 +697,7 @@ final class FanController: NSViewController {
             rule.widthAnchor.constraint(equalToConstant: 1),
             rule.topAnchor.constraint(equalTo: left.topAnchor),
             rule.bottomAnchor.constraint(equalTo: page.bottomAnchor, constant: -14),
-            left.bottomAnchor.constraint(lessThanOrEqualTo: rule.bottomAnchor),
+            left.bottomAnchor.constraint(equalTo: rule.bottomAnchor),
             right.bottomAnchor.constraint(lessThanOrEqualTo: rule.bottomAnchor)
         ])
         return page
@@ -1321,7 +1322,7 @@ extension NSToolbarItem.Identifier {
     static let status = NSToolbarItem.Identifier("status")
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate, NSWindowDelegate {
     private var statusItem: NSStatusItem!
     private let controller = FanController()
     private let quickPanel = QuickPanelController()
@@ -1335,7 +1336,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.regular)
         controller.usesPreviewData = designReview
         preferences.usesPreviewData = designReview
         if !designReview {
@@ -1386,6 +1386,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         window.toolbarStyle = .unifiedCompact
         window.contentMinSize = FanController.windowSize
         window.isReleasedWhenClosed = false
+        window.delegate = self
         window.collectionBehavior.insert(.moveToActiveSpace)
         let frameName = designReview ? "WillowFanDesignReview" : "WillowFanStandalone"
         window.center()
@@ -1397,6 +1398,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         preferencesWindow.title = "柳风设置"
         preferencesWindow.contentViewController = preferences
         preferencesWindow.isReleasedWhenClosed = false
+        preferencesWindow.delegate = self
         preferencesWindow.collectionBehavior.insert(.moveToActiveSpace)
         preferencesWindow.center()
         preferences.onChange = { [weak self] in
@@ -1463,6 +1465,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
 
     @objc private func showWindow() {
         popover.close()
+        NSApp.setActivationPolicy(.regular)
         if window.isMiniaturized { window.deminiaturize(nil) }
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -1511,6 +1514,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
 
     @objc private func showPreferences() {
         popover.close()
+        NSApp.setActivationPolicy(.regular)
         preferencesWindow.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -1520,6 +1524,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         showWindow()
         return true
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard let closingWindow = notification.object as? NSWindow else { return }
+        let otherWindow = closingWindow === window ? preferencesWindow : window
+        if let otherWindow, otherWindow.isVisible || otherWindow.isMiniaturized { return }
+        NSApp.setActivationPolicy(.accessory)
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }

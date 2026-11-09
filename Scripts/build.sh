@@ -59,7 +59,7 @@ cat > "$CONTENTS/Info.plist" <<PLIST
 <key>CFBundleVersion</key><string>$BUILD_NUMBER</string>
 <key>CFBundleIconFile</key><string>WillowFan</string>
 $ICON_NAME_PLIST
-<key>LSUIElement</key><false/>
+<key>LSUIElement</key><true/>
 <key>NSHumanReadableCopyright</key><string>© 2026 ensomnia16</string>
 <key>CFBundleDevelopmentRegion</key><string>zh_CN</string>
 <key>SUFeedURL</key><string>https://raw.githubusercontent.com/ensomnia16/WillowFan/main/updates/v2/appcast.xml</string>
