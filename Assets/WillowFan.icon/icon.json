@@ -1,26 +1,26 @@
 {
   "fill": {
-    "automatic-gradient": "extended-srgb:0.07843,0.34510,0.27059,1.00000"
+    "automatic-gradient": "extended-srgb:0.07059,0.23137,0.28627,1.00000"
   },
   "groups": [
     {
       "layers": [
         {
-          "image-name": "Canopy.svg",
-          "name": "Canopy"
+          "image-name": "Rotor.svg",
+          "name": "Rotor"
         },
         {
-          "image-name": "Breeze.svg",
-          "name": "Breeze"
+          "image-name": "Housing.svg",
+          "name": "Housing"
         }
       ],
       "shadow": {
         "kind": "neutral",
-        "opacity": 0.26
+        "opacity": 0.24
       },
       "translucency": {
         "enabled": true,
-        "value": 0.18
+        "value": 0.1
       }
     }
   ],

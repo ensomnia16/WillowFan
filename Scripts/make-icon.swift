@@ -10,11 +10,14 @@ struct MakeIcon {
                 NSColor(srgbRed: r / 255, green: g / 255, blue: b / 255, alpha: 1)
             }
             let tile = NSBezierPath(roundedRect: canvas.insetBy(dx: 100, dy: 100), xRadius: 177, yRadius: 177)
-            NSGradient(starting: color(71, 124, 110), ending: color(20, 88, 69))?.draw(in: tile, angle: -75)
-            let artwork = NSRect(x: 182, y: 206, width: 618, height: 618)
-            color(235, 250, 235).setFill()
+            NSGradient(starting: color(40, 89, 103), ending: color(15, 47, 59))?.draw(in: tile, angle: -75)
+            let artwork = NSRect(x: 177, y: 177, width: 670, height: 670)
+            color(232, 248, 245).setFill()
             WillowMark.path(in: artwork, layer: 0).fill()
-            color(143, 220, 183).setFill()
+            WillowMark.path(in: artwork, layer: 2).fill()
+            color(131, 200, 196).setFill()
+            NSBezierPath(ovalIn: artwork.insetBy(dx: artwork.width * 115 / 256, dy: artwork.height * 115 / 256)).fill()
+            color(103, 171, 168).setFill()
             WillowMark.path(in: artwork, layer: 1).fill()
             return true
         }
@@ -28,6 +31,13 @@ struct MakeIcon {
         try bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: destination))
         if CommandLine.arguments.count > 2 {
             try WillowMark.svg.write(toFile: CommandLine.arguments[2], atomically: true, encoding: .utf8)
+        }
+        if CommandLine.arguments.count > 3 {
+            let folder = URL(fileURLWithPath: CommandLine.arguments[3], isDirectory: true)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            for (name, svg) in WillowMark.composerLayers {
+                try svg.write(to: folder.appendingPathComponent(name), atomically: true, encoding: .utf8)
+            }
         }
     }
 }
