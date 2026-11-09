@@ -17,9 +17,9 @@ enum WillowMark {
          .curve(241, 179, 246, 106, 209, 64), .close]
     ]
 
-    static func path(in rect: NSRect) -> NSBezierPath {
+    static func path(in rect: NSRect, layer: Int? = nil) -> NSBezierPath {
         let path = NSBezierPath()
-        for contour in contours {
+        for (index, contour) in contours.enumerated() where layer == nil || layer == index {
             for segment in contour {
                 switch segment {
                 case let .move(x, y): path.move(to: NSPoint(x: x, y: y))

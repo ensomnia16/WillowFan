@@ -27,9 +27,13 @@
 
 擦拭模式用于清洁键盘与屏幕，不替代 macOS 的身份认证锁屏。只在点击“擦拭模式”后拦截输入，不保存按键内容；显示器变化、用户会话切换或系统睡眠时会退出。
 
+## Xcode 设计预览
+
+用 Xcode 26 或更新版本打开 `WillowFan.xcodeproj`，选 `WillowFan`，按 **⌘R**。预览使用示例数据，可切换调节开关、三档曲线和进程排序；不会安装或写入风扇服务、登录项和真实设置。可从菜单栏打开弹窗，或用 **⌘,** 打开设置。双击 `Assets/WillowFan.icon` 可在 Icon Composer 继续编辑。
+
 ## 构建与检查
 
-需要 Xcode Command Line Tools 和支持 Rust 2024 edition 的 Rust 工具链。
+正式应用沿用发布脚本。需要 Xcode Command Line Tools 和支持 Rust 2024 edition 的 Rust 工具链。Xcode 26 或更新版本会编译分层图标，并生成旧版 macOS 使用的图标资源；旧版工具链使用同色的静态备选图标。
 
 ```sh
 bash Scripts/test.sh
