@@ -66,93 +66,146 @@ enum WillowMark {
 
 }
 
-/// The three open curves are outlined before export so Icon Composer and
-/// the legacy rasterizer use the same filled shapes.
+/// The cloud and gust use the same outlines in Icon Composer and legacy builds.
 enum WillowAppMark {
-    private static let canvasSize: CGFloat = 1024
-    private static let contours: [(CGPoint, CGPoint, [(CGPoint, CGPoint, CGPoint)])] = [
-        (.init(x: 296, y: 429), .init(x: 528, y: 429), [
-            (.init(x: 598, y: 429), .init(x: 639, y: 387), .init(x: 628, y: 338)),
-            (.init(x: 620, y: 301), .init(x: 582, y: 287), .init(x: 548, y: 298))
-        ]),
-        (.init(x: 243, y: 515), .init(x: 688, y: 515), [
-            (.init(x: 743, y: 515), .init(x: 777, y: 480), .init(x: 765, y: 438)),
-            (.init(x: 756, y: 409), .init(x: 728, y: 394), .init(x: 700, y: 399))
-        ]),
-        (.init(x: 332, y: 602), .init(x: 555, y: 602), [
-            (.init(x: 625, y: 602), .init(x: 661, y: 644), .init(x: 650, y: 691)),
-            (.init(x: 641, y: 731), .init(x: 595, y: 744), .init(x: 564, y: 728))
-        ])
-    ]
+    private static let sourceOrigin: CGFloat = 58
+    private static let sourceSize: CGFloat = 1138
+    private static let ink: UInt32 = 0x126C73
+    private static let cloudTint: UInt32 = 0xDFEFE7
+    private static let tileTint: UInt32 = 0xF8F0DD
+    private typealias Point = (CGFloat, CGFloat)
 
-    private static let centerlines = contours.map { start, lineEnd, curves in
-        let stroke = CGMutablePath()
-        stroke.move(to: start)
-        stroke.addLine(to: lineEnd)
-        for (a, b, end) in curves { stroke.addCurve(to: end, control1: a, control2: b) }
-        return stroke
+    private struct Artwork {
+        let color: UInt32
+        let path: CGPath
     }
 
-    // An offset edge gives the glaze height. Narrower strokes shift towards the light.
-    private static let relief: [(color: UInt32, paths: [CGPath])] = [
-        (45.0, 9.0, 0x2A5442),
-        (45.0, 0.0, 0xA9B89E),
-        (36.0, -3.0, 0xF0E6CD),
-        (12.0, -9.0, 0xFFF9E9)
-    ].map { (width: CGFloat, offset: CGFloat, color: UInt32) in
-        let paths = centerlines.map { line in
-            let outline = line.copy(strokingWithWidth: width, lineCap: .round, lineJoin: .round, miterLimit: 4)
-            var shift = CGAffineTransform(translationX: 0, y: offset)
-            return outline.copy(using: &shift) ?? outline
+    private static func curve(_ start: Point, _ segments: [(Point, Point, Point)],
+                              closed: Bool = false) -> CGPath {
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: start.0, y: start.1))
+        for (a, b, end) in segments {
+            path.addCurve(to: CGPoint(x: end.0, y: end.1),
+                          control1: CGPoint(x: a.0, y: a.1),
+                          control2: CGPoint(x: b.0, y: b.1))
         }
-        return (color, paths)
+        if closed { path.closeSubpath() }
+        return path
     }
+
+    private static func line(_ path: CGPath, width: CGFloat) -> Artwork {
+        Artwork(color: ink, path: path.copy(strokingWithWidth: width, lineCap: .round,
+                                          lineJoin: .round, miterLimit: 4))
+    }
+
+    private static let cloudOutline = curve((246, 457), [
+        ((248, 396), (299, 354), (361, 354)),
+        ((401, 354), (439, 372), (460, 400)),
+        ((511, 376), (565, 414), (566, 473)),
+        ((621, 476), (666, 519), (667, 579)),
+        ((668, 607), (656, 632), (642, 650)),
+        ((650, 700), (611, 770), (556, 785)),
+        ((523, 795), (492, 794), (468, 781)),
+        ((427, 818), (353, 823), (303, 769)),
+        ((257, 795), (206, 789), (175, 755)),
+        ((149, 728), (142, 688), (159, 650)),
+        ((128, 634), (117, 600), (124, 563)),
+        ((136, 504), (176, 457), (246, 457))
+    ], closed: true)
+
+    private static let cloud: [Artwork] = {
+        let mouth = CGPath(ellipseIn: CGRect(x: 504, y: 648, width: 39, height: 72), transform: nil)
+        return [
+            Artwork(color: cloudTint, path: cloudOutline),
+            line(cloudOutline, width: 15),
+            line(curve((359, 506), [
+                ((402, 483), (428, 531), (452, 546)),
+                ((469, 557), (482, 549), (483, 532))
+            ]), width: 11),
+            line(curve((382, 567), [((405, 550), (436, 549), (458, 568))]), width: 9),
+            line(curve((514, 537), [
+                ((530, 570), (553, 533), (574, 517)),
+                ((580, 512), (587, 510), (594, 511))
+            ]), width: 11),
+            line(curve((537, 568), [((556, 553), (576, 553), (593, 563))]), width: 9),
+            line(curve((519, 553), [
+                ((522, 574), (541, 581), (536, 598)),
+                ((531, 615), (503, 614), (486, 602))
+            ]), width: 11),
+            line(curve((439, 596), [
+                ((480, 622), (475, 687), (449, 708)),
+                ((438, 717), (427, 721), (415, 724))
+            ]), width: 12),
+            line(curve((579, 598), [((561, 616), (553, 647), (571, 671))]), width: 10),
+            Artwork(color: tileTint, path: mouth),
+            line(mouth, width: 12)
+        ]
+    }()
+
+    private static let gust = [
+        line(curve((546, 676), [
+            ((686, 687), (835, 673), (921, 635)),
+            ((972, 613), (1014, 578), (998, 541)),
+            ((985, 509), (947, 502), (915, 525))
+        ]), width: 13),
+        line(curve((547, 691), [
+            ((759, 722), (984, 736), (1080, 646)),
+            ((1142, 588), (1120, 506), (1051, 464)),
+            ((984, 423), (892, 440), (851, 500)),
+            ((819, 548), (850, 599), (914, 598))
+        ]), width: 15),
+        line(curve((546, 703), [
+            ((680, 730), (790, 769), (849, 806))
+        ]), width: 8),
+        line(curve((740, 716), [
+            ((879, 721), (1041, 743), (1041, 822)),
+            ((1041, 868), (990, 900), (931, 900)),
+            ((890, 900), (855, 874), (860, 837)),
+            ((865, 806), (900, 781), (936, 788)),
+            ((983, 796), (980, 837), (940, 842))
+        ]), width: 15)
+    ]
 
     static func draw(in rect: CGRect, context: CGContext) {
         context.saveGState()
         context.translateBy(x: rect.minX, y: rect.maxY)
-        context.scaleBy(x: rect.width / canvasSize, y: -rect.height / canvasSize)
-        for (index, pass) in relief.enumerated() {
-            context.saveGState()
-            if index == 0 {
-                context.setShadow(offset: CGSize(width: 0, height: -4), blur: 6,
-                                  color: NSColor.black.withAlphaComponent(0.26).cgColor)
-            }
-            let hex = pass.color
-            let color = NSColor(srgbRed: CGFloat((hex >> 16) & 255) / 255,
-                                green: CGFloat((hex >> 8) & 255) / 255,
-                                blue: CGFloat(hex & 255) / 255, alpha: 1)
+        context.scaleBy(x: rect.width / sourceSize, y: -rect.height / sourceSize)
+        context.translateBy(x: -sourceOrigin, y: -sourceOrigin)
+        for art in cloud + gust {
+            let color = NSColor(srgbRed: CGFloat((art.color >> 16) & 255) / 255,
+                                green: CGFloat((art.color >> 8) & 255) / 255,
+                                blue: CGFloat(art.color & 255) / 255, alpha: 1)
             context.setFillColor(color.cgColor)
-            for path in pass.paths { context.addPath(path) }
+            context.addPath(art.path)
             context.fillPath()
-            context.restoreGState()
         }
         context.restoreGState()
     }
 
-    static var composerSVG: String {
+    private static func svg(_ art: [Artwork]) -> String {
         func coordinate(_ p: CGPoint) -> String { String(format: "%.3f %.3f", p.x, p.y) }
-        let elements = relief.flatMap { pass in
-            let fill = String(format: "#%06X", pass.color)
-            return pass.paths.map { outline in
-                var components: [String] = []
-                outline.applyWithBlock { pointer in
-                    let element = pointer.pointee
-                    let points = element.points
-                    switch element.type {
-                    case .moveToPoint: components.append("M" + coordinate(points[0]))
-                    case .addLineToPoint: components.append("L" + coordinate(points[0]))
-                    case .addQuadCurveToPoint:
-                        components.append("Q" + coordinate(points[0]) + " " + coordinate(points[1]))
-                    case .addCurveToPoint:
-                        components.append("C" + coordinate(points[0]) + " " + coordinate(points[1]) + " " + coordinate(points[2]))
-                    case .closeSubpath: components.append("Z")
-                    @unknown default: break
-                    }
+        let paths = art.map { layer in
+            var components: [String] = []
+            layer.path.applyWithBlock { pointer in
+                let element = pointer.pointee
+                let p = element.points
+                switch element.type {
+                case .moveToPoint: components.append("M" + coordinate(p[0]))
+                case .addLineToPoint: components.append("L" + coordinate(p[0]))
+                case .addQuadCurveToPoint: components.append("Q" + coordinate(p[0]) + " " + coordinate(p[1]))
+                case .addCurveToPoint:
+                    components.append("C" + coordinate(p[0]) + " " + coordinate(p[1]) + " " + coordinate(p[2]))
+                case .closeSubpath: components.append("Z")
+                @unknown default: break
                 }
-                return "<path fill=\"\(fill)\" d=\"\(components.joined(separator: " "))\"/>"
             }
+            return "<path fill=\"\(String(format: "#%06X", layer.color))\" d=\"\(components.joined(separator: " "))\"/>"
         }.joined()
-        return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1024\" height=\"1024\" viewBox=\"0 0 1024 1024\">\(elements)</svg>\n"
+        let viewBox = "\(sourceOrigin) \(sourceOrigin) \(sourceSize) \(sourceSize)"
+        return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1024\" height=\"1024\" viewBox=\"\(viewBox)\">\(paths)</svg>\n"
+    }
+
+    static var composerLayers: [(name: String, svg: String)] {
+        [("Cloud.svg", svg(cloud)), ("Gust.svg", svg(gust))]
     }
 }

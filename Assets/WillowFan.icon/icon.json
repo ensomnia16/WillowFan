@@ -1,18 +1,22 @@
 {
   "fill": {
-    "automatic-gradient": "extended-srgb:0.19216,0.36078,0.27451,1.00000"
+    "automatic-gradient": "extended-srgb:0.96863,0.93333,0.85882,1.00000"
   },
   "groups": [
     {
       "layers": [
         {
-          "image-name": "Wind.svg",
-          "name": "Wind"
+          "image-name": "Gust.svg",
+          "name": "Gust"
+        },
+        {
+          "image-name": "Cloud.svg",
+          "name": "Cloud"
         }
       ],
       "shadow": {
         "kind": "neutral",
-        "opacity": 0.38
+        "opacity": 0.05
       },
       "translucency": {
         "enabled": true,

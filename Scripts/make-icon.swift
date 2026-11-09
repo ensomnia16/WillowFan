@@ -10,7 +10,7 @@ struct MakeIcon {
                 NSColor(srgbRed: r / 255, green: g / 255, blue: b / 255, alpha: 1)
             }
             let tile = NSBezierPath(roundedRect: canvas.insetBy(dx: 100, dy: 100), xRadius: 177, yRadius: 177)
-            NSGradient(starting: color(89, 126, 104), ending: color(49, 92, 70))?.draw(in: tile, angle: -75)
+            NSGradient(starting: color(252, 247, 234), ending: color(247, 238, 218))?.draw(in: tile, angle: -75)
             guard let context = NSGraphicsContext.current?.cgContext else { return false }
             WillowAppMark.draw(in: tile.bounds, context: context)
             return true
@@ -29,7 +29,9 @@ struct MakeIcon {
         if CommandLine.arguments.count > 3 {
             let folder = URL(fileURLWithPath: CommandLine.arguments[3], isDirectory: true)
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            try WillowAppMark.composerSVG.write(to: folder.appendingPathComponent("Wind.svg"), atomically: true, encoding: .utf8)
+            for layer in WillowAppMark.composerLayers {
+                try layer.svg.write(to: folder.appendingPathComponent(layer.name), atomically: true, encoding: .utf8)
+            }
         }
     }
 }
