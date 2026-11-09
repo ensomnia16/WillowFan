@@ -97,7 +97,7 @@ enum WillowAppMark {
         context.saveGState()
         context.translateBy(x: rect.minX, y: rect.maxY)
         context.scaleBy(x: rect.width / canvasSize, y: -rect.height / canvasSize)
-        context.setFillColor(NSColor(srgbRed: 230 / 255, green: 241 / 255, blue: 1, alpha: 1).cgColor)
+        context.setFillColor(NSColor(srgbRed: 246 / 255, green: 239 / 255, blue: 222 / 255, alpha: 1).cgColor)
         for outline in outlines {
             context.addPath(outline)
             context.fillPath()
@@ -123,7 +123,7 @@ enum WillowAppMark {
                 @unknown default: break
                 }
             }
-            return "<path fill=\"#E6F1FF\" d=\"\(components.joined(separator: " "))\"/>"
+            return "<path fill=\"#F6EFDE\" d=\"\(components.joined(separator: " "))\"/>"
         }.joined()
         return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1024\" height=\"1024\" viewBox=\"0 0 1024 1024\">\(elements)</svg>\n"
     }
