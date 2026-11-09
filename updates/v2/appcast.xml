@@ -1,0 +1,26 @@
+<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>柳风</title>
+        <item>
+            <title>1.13.0</title>
+            <pubDate>Mon, 09 Nov 2026 18:00:56 +0800</pubDate>
+            <link>https://github.com/ensomnia16/WillowFan</link>
+            <sparkle:version>21</sparkle:version>
+            <sparkle:shortVersionString>1.13.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[柳风 1.13.0
+
+- 重做散热概览与菜单栏面板，集中展示近两分钟的温度趋势、风扇转速和最热传感器。
+- 支持从菜单栏打开完整传感器列表，并按编号搜索。
+- 主图标和菜单栏采用云朵吹风图案，菜单栏图标随系统外观切换。
+]]></description>
+            <enclosure url="https://github.com/ensomnia16/WillowFan/releases/download/v1.13.0/WillowFan-1.13.0-arm64.zip" length="3253800" type="application/octet-stream" sparkle:edSignature="pBtWjTNnOcZ7xXEDx/T+gTYMUlyqBQp7Ye8qINdexE4MUlasGLmRdRTrbgeAJRq+JGZnA1Nl6vhyy/LXc1k7BQ=="></enclosure>
+        </item>
+    </channel>
+</rss><!-- sparkle-signatures:
+edSignature: fbgZprKQWBgRbSTy+Jbl4ipPg3DHI8CzYgP8L9Pb1J6zUKhJ7X5vW2fP6jvju0MjyKZQ5O6Y7sK5WJoqMGGcBw==
+length: 1570
+-->
