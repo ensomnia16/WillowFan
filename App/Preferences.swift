@@ -3,8 +3,9 @@ import ServiceManagement
 import ApplicationServices
 
 final class PreferencesController: NSViewController {
-    static let size = NSSize(width: 460, height: 280)
+    static let size = NSSize(width: 460, height: 376)
     var onChange: (() -> Void)?
+    var usesPreviewData = false
     private let loginCheck = NSButton(checkboxWithTitle: "登录时启动", target: nil, action: nil)
     private let loginNote = label("", size: 11, color: .secondaryLabelColor)
     private let loginSettingsButton = NSButton(title: "登录项设置…", target: nil, action: nil)
@@ -28,6 +29,8 @@ final class PreferencesController: NSViewController {
         refreshPicker.target = self
         refreshPicker.action = #selector(changed)
         refreshPicker.controlSize = .small
+        loginNote.maximumNumberOfLines = 2
+        loginNote.lineBreakMode = .byTruncatingTail
         let login = hstack([loginCheck, spacer(), loginSettingsButton])
         let refresh = hstack([label("刷新间隔", size: 13), spacer(), refreshPicker])
         let checkButton = NSButton(title: "检查更新…", target: self, action: #selector(checkUpdates))
@@ -43,7 +46,24 @@ final class PreferencesController: NSViewController {
         github.bezelStyle = .inline
         github.controlSize = .small
         let footer = hstack([label("柳风 \(version)", size: 11, color: .secondaryLabelColor), spacer(), github])
-        let stack = vstack([login, loginNote, launchCheck, refresh, SeparatorLine(), updateRow, installs, SeparatorLine(), cleaning, footer], spacing: 12)
+        if usesPreviewData {
+            for button in [checkButton, permission, loginCheck, launchCheck, checks, installs] { button.isEnabled = false }
+            refreshPicker.isEnabled = false
+        }
+        func group(_ title: String, _ rows: [NSView]) -> NSView {
+            let card = CardView()
+            card.radius = 12
+            let content = vstack([label(title, size: 13, weight: .semibold)] + rows, spacing: 7)
+            fillWidth(content)
+            pin(content, in: card, NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12))
+            return card
+        }
+        let stack = vstack([
+            group("启动与刷新", [login, loginNote, launchCheck, refresh]),
+            group("更新", [updateRow, installs]),
+            group("权限", [cleaning]),
+            footer
+        ], spacing: 10)
         fillWidth(stack)
         stack.translatesAutoresizingMaskIntoConstraints = false
         root.addSubview(stack)
@@ -58,6 +78,16 @@ final class PreferencesController: NSViewController {
 
     override func viewWillAppear() {
         super.viewWillAppear()
+        if usesPreviewData {
+            loginCheck.state = .on
+            launchCheck.state = .on
+            checks.state = .on
+            installs.state = .on
+            refreshPicker.selectItem(at: 1)
+            loginNote.isHidden = true
+            loginSettingsButton.isHidden = true
+            return
+        }
         launchCheck.state = UISettings.showMainWindowAtLaunch ? .on : .off
         let choices: [TimeInterval] = [2, 5, 10, 30]
         refreshPicker.selectItem(at: choices.firstIndex(of: UISettings.displayRefreshSeconds) ?? 1)

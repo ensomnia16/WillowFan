@@ -2,21 +2,10 @@
 
 柳风是一款以菜单栏为入口的原生 macOS 工具。首要任务是查看温度和调节风扇；擦拭模式、更新和设置各保留一个明确入口。
 
-使用 AppKit 与系统字体，正文 13 pt，次要信息 11 pt，数值使用等宽数字。浅色底色 #F5F6F4、内容底色 #FFFFFF、分隔 #E0E4E0、柳绿 #357A50、主文字采用系统 labelColor；深色随系统切换。布局使用 4、8、12、16、20 pt 间距。文字左对齐，状态和数值右对齐。
+概览和菜单栏弹窗参考 iStat Menus 的传感器分组。用细线分隔温度、转速、传感器和调节，读数使用等宽数字。温度图显示最近两分钟的采样，读取中断时断开连线。风扇条根据硬件上报的最低与最高转速标示当前值。
 
-菜单栏与应用图标采用用户确认的 A「回叶」：两片柳叶围出回旋的气流。保留原 A 的两个轮廓，不加入融合稿的气流切口。菜单栏为 18 pt 单色模板图像；应用图标为深柳绿 #235C43 底色与暖白 #F5FBF6 标志。共享几何在 `Shared/WillowMark.swift` 中定义，SVG 导出、菜单栏和应用图标使用同一组曲线。绿色只用于已选曲线和正在运行的状态。菜单不使用嵌套卡片；设置和更新按用途分组。关于信息收进系统应用菜单和设置底部。
+主图标采用三片实心扇叶和中心轴。`Assets/WillowFan.icon` 包含转子和外框两个可编辑矢量层。菜单栏图标保留 16 pt 宽度，曲线和调节状态可通过悬停提示和辅助功能标签查看。
 
-菜单顺序：温度与风扇 → 调节开关与曲线 → 风扇面板、擦拭模式 → 设置、检查更新 → 退出。技术字段、采样周期、内部恢复机制留在文档或提示中，不放在日常操作路径上。
+Xcode 工程运行独立的设计预览，使用示例温度、转速和进程。正式应用通过 `Scripts/build.sh` 构建。MacBook 的 W2-M4 版是这轮修改的基线。
 
-文案规则：一个事实只出现一次；动作使用短而明确的动宾词；正常状态不附加解释；权限或失败时才显示原因与恢复动作。保留擦拭模式的退出组合键与自动退出时间，因为它们影响使用。
-
-设计参考与使用的 prompt：
-
-- [Anthropic frontend-design](https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md)：为主题选择一个识别点，控制其余视觉元素。
-- [Impeccable distill](https://github.com/pbakaus/impeccable/blob/main/.agents/skills/impeccable/reference/distill.md)：移除重复信息、无作用的容器与解释；保留必要功能。
-- [Impeccable clarify](https://github.com/pbakaus/impeccable/blob/main/.agents/skills/impeccable/reference/clarify.md)：让动作、结果、权限和恢复路径一眼可懂。
-- [Apple 菜单指南](https://developer.apple.com/design/human-interface-guidelines/menus)：按用途分组并遵循系统菜单习惯。
-
-本次设计 prompt：以一片柳叶为品牌识别点，重新组织原生 macOS 风扇工具的菜单。优先保证当前温度、风扇调节、擦拭模式和更新容易找到。删去无法改变用户决策的文案；不要增加营销口号、技术说明或装饰性分组。
-
-标志设计参考：[logo-design skill](https://github.com/kaankiziltug/logo-design-skill/blob/main/skills/logo-design/SKILL.md)。用户于本轮审核选择原版 A「回叶」，后续交付以该形态为准。
+- [iStat Menus 的传感器菜单](https://bjango.com/mac/istatmenus/)

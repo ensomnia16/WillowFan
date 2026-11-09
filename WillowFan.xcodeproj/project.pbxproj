@@ -1,0 +1,234 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+		46D500000000000000000024 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "ToolbarStatusView.swift";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000026 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000024";
+		};
+		46D500000000000000000025 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "WillowMenuBarIcons.swift";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000027 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000025";
+		};
+		46D500000000000000000011 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000001";
+		};
+		46D500000000000000000012 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000002";
+		};
+		46D500000000000000000013 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000003";
+		};
+		46D500000000000000000014 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000004";
+		};
+		46D500000000000000000015 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000005";
+		};
+		46D500000000000000000016 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000006";
+		};
+		46D500000000000000000017 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000007";
+		};
+		46D500000000000000000018 = {
+			isa = PBXBuildFile;
+			fileRef = "46D500000000000000000008";
+		};
+		46D500000000000000000019 = {
+			isa = PBXBuildFile;
+			fileRef = "46D50000000000000000000A";
+		};
+		46D50000000000000000001B = {
+			isa = PBXBuildFile;
+			fileRef = "46D50000000000000000000C";
+		};
+		46D500000000000000000001 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "CleaningMode.swift";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000002 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "ControlService.swift";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000003 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "MenuPanel.swift";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000004 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "Preferences.swift";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000005 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "TelemetryDesign.swift";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000006 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "UnlockGesture.swift";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000007 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "Updates.swift";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000008 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "main.swift";
+			sourceTree = "<group>";
+		};
+		46D50000000000000000000A = {
+			isa = PBXFileReference;
+			lastKnownFileType = "sourcecode.swift";
+			path = "WillowMark.swift";
+			sourceTree = "<group>";
+		};
+		46D50000000000000000000C = {
+			isa = PBXFileReference;
+			lastKnownFileType = "folder.iconcomposer.icon";
+			path = "WillowFan.icon";
+			sourceTree = "<group>";
+		};
+		46D50000000000000000000E = {
+			isa = PBXFileReference;
+			explicitFileType = "wrapper.application";
+			includeInIndex = 0;
+			path = "柳风设计预览.app";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		46D500000000000000000009 = {
+			isa = PBXGroup;
+			children = ( "46D500000000000000000001", "46D500000000000000000002", "46D500000000000000000003", "46D500000000000000000004", "46D500000000000000000005", "46D500000000000000000006", "46D500000000000000000007", "46D500000000000000000024", "46D500000000000000000025", "46D500000000000000000008", );
+			path = "App";
+			sourceTree = "<group>";
+		};
+		46D50000000000000000000B = {
+			isa = PBXGroup;
+			children = ( "46D50000000000000000000A", );
+			path = "Shared";
+			sourceTree = "<group>";
+		};
+		46D50000000000000000000D = {
+			isa = PBXGroup;
+			children = ( "46D50000000000000000000C", );
+			path = "Assets";
+			sourceTree = "<group>";
+		};
+		46D50000000000000000000F = {
+			isa = PBXGroup;
+			children = ( "46D50000000000000000000E", );
+			name = "Products";
+			sourceTree = "<group>";
+		};
+		46D500000000000000000010 = {
+			isa = PBXGroup;
+			children = ( "46D500000000000000000009", "46D50000000000000000000B", "46D50000000000000000000D", "46D50000000000000000000F", );
+			sourceTree = "<group>";
+		};
+		46D500000000000000000021 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = "46D500000000000000000020";
+			buildPhases = ( "46D50000000000000000001D", "46D50000000000000000001A", "46D50000000000000000001C", );
+			buildRules = ( );
+			dependencies = ( );
+			name = "WillowFan";
+			productName = "柳风设计预览";
+			productReference = "46D50000000000000000000E";
+			productType = "com.apple.product-type.application";
+		};
+		46D500000000000000000023 = {
+			isa = PBXProject;
+			attributes = { LastUpgradeCheck = 2720; };
+			buildConfigurationList = "46D500000000000000000022";
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh_CN";
+			hasScannedForEncodings = 0;
+			knownRegions = ( "zh_CN", "Base", );
+			mainGroup = "46D500000000000000000010";
+			productRefGroup = "46D50000000000000000000F";
+			projectDirPath = "";
+			projectRoot = "";
+			targets = ( "46D500000000000000000021", );
+		};
+		46D50000000000000000001C = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = ( "46D50000000000000000001B", );
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		46D50000000000000000001D = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = ( );
+			alwaysOutOfDate = 1;
+			name = "Prepare and embed Sparkle";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = "/bin/bash";
+			shellScript = "set -euo pipefail\nbash \"$SRCROOT/Scripts/fetch-sparkle.sh\"\nmkdir -p \"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH\"\nditto \"$SRCROOT/.deps.noindex/Sparkle/Sparkle.framework\" \"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH/Sparkle.framework\"\n";
+		};
+		46D50000000000000000001A = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = ( "46D500000000000000000011", "46D500000000000000000012", "46D500000000000000000013", "46D500000000000000000014", "46D500000000000000000015", "46D500000000000000000016", "46D500000000000000000017", "46D500000000000000000018", "46D500000000000000000026", "46D500000000000000000027", "46D500000000000000000019", );
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		46D50000000000000000001E = {
+			isa = XCBuildConfiguration;
+			name = "Debug";
+			buildSettings = { SDKROOT = "macosx"; ALWAYS_SEARCH_USER_PATHS = "NO"; MACOSX_DEPLOYMENT_TARGET = "13.0"; ARCHS = "arm64"; SWIFT_VERSION = "5.0"; ENABLE_USER_SCRIPT_SANDBOXING = "NO"; };
+		};
+		46D50000000000000000001F = {
+			isa = XCBuildConfiguration;
+			name = "Debug";
+			buildSettings = { PRODUCT_NAME = "柳风设计预览"; PRODUCT_BUNDLE_IDENTIFIER = "com.willowfan.app.design-review"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_FILE = "Assets/DesignReview-Info.plist"; ASSETCATALOG_COMPILER_APPICON_NAME = "WillowFan"; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = "Manual"; FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/.deps.noindex/Sparkle"; LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks"; OTHER_LDFLAGS = ( "$(inherited)", "-framework", "Sparkle", ); CURRENT_PROJECT_VERSION = 19; MARKETING_VERSION = "1.12.2"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; ENABLE_DEBUG_DYLIB = "NO"; };
+		};
+		46D500000000000000000020 = {
+			isa = XCConfigurationList;
+			buildConfigurations = ( "46D50000000000000000001F", );
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Debug";
+		};
+		46D500000000000000000022 = {
+			isa = XCConfigurationList;
+			buildConfigurations = ( "46D50000000000000000001E", );
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Debug";
+		};
+	};
+	rootObject = 46D500000000000000000023;
+}
