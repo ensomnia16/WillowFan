@@ -49,6 +49,7 @@ enum Palette {
     static let card = dynamic(rgb(0xFCFDFD), rgb(0x222A31))
     static let fill = dynamic(rgb(0xE2E8EB), rgb(0x303B44))
     static let hair = dynamic(rgb(0xD5DEE2), rgb(0x37444E))
+    static let plot = dynamic(rgb(0xE9EEF0), rgb(0x171D22))
     static let accent = dynamic(rgb(0x22788B), rgb(0x69C4D5))
     static let accentSoft = dynamic(rgb(0xD9EEF1), rgb(0x69C4D5, 0.18))
     static let accentText = dynamic(rgb(0x1E6070), rgb(0x96DEEA))
@@ -124,11 +125,6 @@ func insets(_ value: CGFloat) -> NSEdgeInsets { NSEdgeInsets(top: value, left: v
 /// Stretches every arranged subview of a vertical stack to its full width.
 func fillWidth(_ stack: NSStackView) {
     for view in stack.arrangedSubviews { view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true }
-}
-
-/// Compact three-blade rotor for the menu bar and popover.
-func fanIcon(size: CGFloat, template: Bool) -> NSImage {
-    WillowMark.image(size: size, template: template, color: Palette.accent)
 }
 
 // MARK: - Model
@@ -373,7 +369,7 @@ final class SensorRowView: NSView {
     private let bar = BarView()
     private let valueLabel = numberLabel("—", size: 13, weight: .medium)
 
-    init() {
+    init(compact: Bool = false) {
         super.init(frame: .zero)
         nameLabel.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
         nameLabel.textColor = .secondaryLabelColor
@@ -383,14 +379,14 @@ final class SensorRowView: NSView {
             addSubview(view)
         }
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 26),
+            heightAnchor.constraint(equalToConstant: compact ? 21 : 26),
             nameLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
             nameLabel.widthAnchor.constraint(equalToConstant: 56),
             nameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             bar.leadingAnchor.constraint(equalTo: nameLabel.trailingAnchor, constant: 12),
             bar.trailingAnchor.constraint(equalTo: valueLabel.leadingAnchor, constant: -12),
             bar.centerYAnchor.constraint(equalTo: centerYAnchor),
-            bar.heightAnchor.constraint(equalToConstant: 6),
+            bar.heightAnchor.constraint(equalToConstant: compact ? 3 : 5),
             valueLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
             valueLabel.widthAnchor.constraint(equalToConstant: 44),
             valueLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
@@ -514,6 +510,11 @@ final class CurveChart: NSView {
 // MARK: - Main window
 
 final class FanController: NSViewController {
+    enum Page: Int, CaseIterable {
+        case overview, curve, process, sensors
+        var title: String { ["概览", "曲线", "进程", "传感器"][rawValue] }
+    }
+
     var onSnapshot: ((FanSnapshot) -> Void)?
     private var temperature: Double?
     private var sensor = "—"
@@ -537,7 +538,7 @@ final class FanController: NSViewController {
     static let windowSize = NSSize(width: 760, height: 490)
 
     /// Shown in the window toolbar by the app delegate.
-    let tabControl = NSSegmentedControl(labels: ["概览", "曲线", "进程"], trackingMode: .selectOne, target: nil, action: nil)
+    let tabControl = NSSegmentedControl(labels: Page.allCases.map(\.title), trackingMode: .selectOne, target: nil, action: nil)
     let statusPill = StatusPill()
 
     private let tabView = NSTabView()
@@ -547,8 +548,11 @@ final class FanController: NSViewController {
     private let heroDetail = telemetryLabel("等待读数")
     private let leftFan = FanReadingRow("风扇 1")
     private let rightFan = FanReadingRow("风扇 2")
+    private let fanEmpty = telemetryLabel("等待读数")
     private let sensorRows = (0..<6).map { _ in SensorRowView() }
     private let sensorEmpty = label("等待传感器读数", size: 12, color: .secondaryLabelColor)
+    private let sensorList = SensorListController()
+    private lazy var allSensors = SensorListButton(target: self, action: #selector(showSensors))
     private let performance = PerformanceController()
     private let switchControl = NSSwitch()
     private let switchDetail = label("关闭后交还系统控制", size: 11, color: .secondaryLabelColor)
@@ -582,9 +586,11 @@ final class FanController: NSViewController {
         let root = BackgroundView(frame: NSRect(origin: .zero, size: FanController.windowSize))
         tabView.tabViewType = .noTabsNoBorder
         tabView.drawsBackground = false
-        for (title, page) in [("概览", makeOverview()), ("曲线", makeCurvePage()), ("进程", makeProcessPage())] {
-            let item = NSTabViewItem(identifier: title)
-            item.label = title
+        addChild(sensorList)
+        let pages = [makeOverview(), makeCurvePage(), makeProcessPage(), sensorList.view]
+        for (tab, page) in zip(Page.allCases, pages) {
+            let item = NSTabViewItem(identifier: tab.rawValue)
+            item.label = tab.title
             item.view = page
             tabView.addTabViewItem(item)
         }
@@ -625,31 +631,23 @@ final class FanController: NSViewController {
         let temperature = hstack([temperatureLabel, degree, spacer(), heroDetail], spacing: 5)
         temperature.alignment = .firstBaseline
         thermalTrend.heightAnchor.constraint(equalToConstant: 130).isActive = true
-        let axis = vstack(["100°", "80°", "60°", "40°"].map {
-            let field = telemetryLabel($0)
-            field.alignment = .right
-            return field
-        }, spacing: 0, alignment: .trailing)
-        axis.distribution = .equalSpacing
-        axis.heightAnchor.constraint(equalToConstant: 130).isActive = true
-        let chart = hstack([axis, thermalTrend], spacing: 6)
         let timeline = hstack([telemetryLabel("2 分钟前"), spacer(), telemetryLabel("现在")])
         let fanStack = vstack([
             sectionHeading("风扇转速", symbol: "fanblades", trailing: telemetryLabel("转速 / 硬件范围")),
-            leftFan, fanDetails[0], rightFan, fanDetails[1]
+            leftFan, fanDetails[0], rightFan, fanDetails[1], fanEmpty
         ], spacing: 7)
         fanStack.setCustomSpacing(2, after: leftFan)
         fanStack.setCustomSpacing(2, after: rightFan)
         fillWidth(fanStack)
         let trendHeader = sectionHeading("最高温度", symbol: "thermometer.medium", trailing: telemetryLabel("近 2 分钟"))
-        let left = vstack([trendHeader, temperature, chart, timeline, SeparatorLine(), fanStack], spacing: 9)
+        let left = vstack([trendHeader, temperature, thermalTrend, timeline, SeparatorLine(), fanStack], spacing: 9)
         left.setCustomSpacing(2, after: temperature)
-        left.setCustomSpacing(2, after: chart)
+        left.setCustomSpacing(2, after: thermalTrend)
         left.setCustomSpacing(13, after: timeline)
         left.setCustomSpacing(12, after: left.arrangedSubviews[4])
         fillWidth(left)
 
-        let sensorHeading = sectionHeading("温度传感器", symbol: "sensor", trailing: telemetryLabel("°C"))
+        let sensorHeading = sectionHeading("温度传感器", symbol: "sensor", trailing: allSensors)
         let sensorStack = vstack([sensorHeading] + sensorRows + [sensorEmpty], spacing: 0)
         sensorStack.setCustomSpacing(5, after: sensorHeading)
         fillWidth(sensorStack)
@@ -763,7 +761,7 @@ final class FanController: NSViewController {
 
     override func viewDidAppear() {
         super.viewDidAppear()
-        performance.setShown(!usesPreviewData && tabControl.selectedSegment == 2)
+        performance.setShown(!usesPreviewData && tabControl.selectedSegment == Page.process.rawValue)
     }
 
     override func viewDidDisappear() {
@@ -775,10 +773,11 @@ final class FanController: NSViewController {
         guard (0..<tabView.numberOfTabViewItems).contains(index) else { return }
         tabControl.selectedSegment = index
         tabView.selectTabViewItem(at: index)
-        performance.setShown(!usesPreviewData && index == 2 && view.window?.isVisible == true)
+        performance.setShown(!usesPreviewData && index == Page.process.rawValue && view.window?.isVisible == true)
     }
 
     @objc private func tabChanged() { selectTab(tabControl.selectedSegment) }
+    @objc private func showSensors() { selectTab(Page.sensors.rawValue) }
 
     func resetRefreshTimer() {
         timer?.invalidate()
@@ -857,7 +856,7 @@ final class FanController: NSViewController {
             else if line.hasPrefix("curve =") { curveName = String(words.last ?? "active") }
         }
         fans = newFans
-        sensors = Array(newSensors.sorted { $0.1 == $1.1 ? $0.0 < $1.0 : $0.1 > $1.1 }.prefix(6))
+        sensors = newSensors.sorted { $0.1 == $1.1 ? $0.0 < $1.0 : $0.1 > $1.1 }
     }
 
     private func updateBaseLabels() {
@@ -879,12 +878,18 @@ final class FanController: NSViewController {
         statusPill.text = active ? "正在调节" : "系统自动"
         leftFan.update(fans.first)
         rightFan.update(fans.count > 1 ? fans[1] : nil)
+        leftFan.isHidden = fans.isEmpty
+        rightFan.isHidden = fans.count < 2
+        fanEmpty.isHidden = !fans.isEmpty
         for (index, detail) in fanDetails.enumerated() {
             let fan = fans.indices.contains(index) ? fans[index] : nil
-            detail.stringValue = fan.map { $0.mode == "forced" ? "目标 \($0.target) RPM" : "系统自动" } ?? "等待读数"
+            detail.isHidden = fan == nil
+            detail.stringValue = fan.map { $0.mode == "forced" ? "目标 \($0.target) RPM" : "系统自动" } ?? ""
         }
         for (index, row) in sensorRows.enumerated() { row.update(sensors.indices.contains(index) ? sensors[index] : nil) }
         sensorEmpty.isHidden = !sensors.isEmpty
+        allSensors.showCount(sensors.count)
+        sensorList.update(sensors)
         switchControl.state = enabled && installed ? .on : .off
         switchControl.isEnabled = installed && serviceRunning && !busy
         switchDetail.stringValue = !installed ? "需要先安装控制服务" : !serviceRunning ? "控制服务未运行" : "关闭后交还系统控制"
@@ -928,7 +933,8 @@ final class FanController: NSViewController {
         sensor = "Te02"
         fans = [FanState(rpm: 2920, target: 2900, minimum: 1200, maximum: 5779, mode: "forced"),
                 FanState(rpm: 3119, target: 3100, minimum: 1200, maximum: 6241, mode: "forced")]
-        sensors = [("Te02", 68), ("Tp09", 65), ("Tp01", 62), ("Tg0D", 56), ("Tm0P", 51), ("TB0T", 44)]
+        sensors = [("Te02", 68), ("Tp09", 65), ("Tp01", 62), ("Tg0D", 56), ("Tm0P", 51), ("TB0T", 44),
+                   ("TB1T", 43), ("TaLP", 38), ("TaRP", 36)]
         curveName = "balanced"
         enabled = true
         serviceRunning = true
@@ -1400,9 +1406,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         }
 
         popover.contentViewController = quickPanel
-        popover.contentSize = QuickPanelController.size
         popover.behavior = .transient
         quickPanel.onShowMain = { [weak self] in self?.showWindow() }
+        quickPanel.onShowSensors = { [weak self] in
+            self?.controller.selectTab(FanController.Page.sensors.rawValue)
+            self?.showWindow()
+        }
         quickPanel.onSettings = { [weak self] in self?.showPreferences() }
         quickPanel.onQuit = { [weak self] in self?.quitApp() }
         quickPanel.onCleaning = { [weak self] in self?.startCleaning() }
@@ -1410,7 +1419,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         quickPanel.onSetEnabled = { [weak self] enabled in self?.controller.setEnabled(enabled) }
         quickPanel.onCurve = { [weak self] curve in self?.controller.selectCurve(curve) }
 
-        statusItem = NSStatusBar.system.statusItem(withLength: 16)
+        statusItem = NSStatusBar.system.statusItem(withLength: willowMenuBarIcon.size.width)
         configureWillowMenuBarButton(statusItem)
         statusItem.button?.image = willowMenuBarIcon
         statusItem.button?.toolTip = "柳风 · 读取模式中"
@@ -1422,7 +1431,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
             let title = "柳风 · \(snapshot.active ? "正在调节" : "系统自动") · \(curveTitle(snapshot.curve))"
             self.statusItem.button?.toolTip = title
             self.statusItem.button?.setAccessibilityLabel(title)
-            if self.popover.isShown { self.quickPanel.update(snapshot) }
+            if self.popover.isShown { self.updatePopover(snapshot) }
         }
         if designReview {
             controller.ensureViewLoaded()
@@ -1463,9 +1472,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
     @objc private func togglePopover() {
         if popover.isShown { popover.close(); return }
         guard let button = statusItem.button else { return }
-        quickPanel.update(controller.snapshot)
+        updatePopover(controller.snapshot)
         controller.refresh()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+    }
+
+    private func updatePopover(_ snapshot: FanSnapshot) {
+        quickPanel.update(snapshot)
+        let size = quickPanel.preferredContentSize
+        if popover.contentSize != size { popover.contentSize = size }
     }
 
     @objc private func checkUpdates() {
@@ -1517,7 +1532,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
 
 // MARK: - Entry
 
-/// `--preview <png> [main|curve|process|quick|settings|menubar] [dark]` renders a screen to a PNG for review.
+/// `--preview <png> [main|curve|process|sensors|quick|settings|menubar] [dark]` renders a screen to a PNG for review.
 func renderPreview(_ arguments: [String]) -> Never {
     let output = arguments[2]
     let screen = arguments.count > 3 ? arguments[3] : "main"
@@ -1527,13 +1542,13 @@ func renderPreview(_ arguments: [String]) -> Never {
     var keepAlive: AnyObject?
     switch screen {
     case "quick":
+        let demo = FanController()
+        demo.usesPreviewData = true
+        demo.ensureViewLoaded()
+        demo.applyPreviewReadings()
         let controller = QuickPanelController()
-        controller.update(FanSnapshot(temperature: 68, sensor: "Te02",
-                                      fans: [FanState(rpm: 2920, target: 2900, minimum: 1200, maximum: 5779, mode: "forced"),
-                                             FanState(rpm: 3119, target: 3100, minimum: 1200, maximum: 6241, mode: "forced")],
-                                      curve: "balanced", enabled: true, serviceRunning: true, installed: true,
-                                      history: ThermalSample.demonstration(), sensors: [("Te02", 68), ("Tp09", 65), ("Tp01", 62)]))
-        let window = NSWindow(contentRect: NSRect(origin: .zero, size: QuickPanelController.size), styleMask: [.borderless], backing: .buffered, defer: false)
+        controller.update(demo.snapshot)
+        let window = NSWindow(contentRect: NSRect(origin: .zero, size: controller.preferredContentSize), styleMask: [.borderless], backing: .buffered, defer: false)
         window.contentViewController = controller
         view = controller.view
         keepAlive = window
@@ -1551,7 +1566,10 @@ func renderPreview(_ arguments: [String]) -> Never {
         let holder = BackgroundView(frame: NSRect(x: 0, y: 0, width: 72, height: 36))
         let image = NSImageView(image: willowMenuBarIcon)
         image.contentTintColor = .labelColor
-        image.frame = NSRect(x: 28, y: 10, width: 16, height: 16)
+        let size = willowMenuBarIcon.size
+        image.frame = NSRect(x: (holder.bounds.width - size.width) / 2,
+                             y: (holder.bounds.height - size.height) / 2,
+                             width: size.width, height: size.height)
         holder.addSubview(image)
         view = holder
     default:
@@ -1559,7 +1577,8 @@ func renderPreview(_ arguments: [String]) -> Never {
         controller.usesPreviewData = true
         let window = NSWindow(contentRect: NSRect(origin: .zero, size: FanController.windowSize), styleMask: [.titled], backing: .buffered, defer: false)
         window.contentViewController = controller
-        controller.selectTab(["main": 0, "curve": 1, "process": 2][screen] ?? 0)
+        let page: FanController.Page = ["curve": .curve, "process": .process, "sensors": .sensors][screen] ?? .overview
+        controller.selectTab(page.rawValue)
         controller.applyPreviewReadings()
         keepAlive = window
         view = controller.view

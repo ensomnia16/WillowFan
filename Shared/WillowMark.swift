@@ -1,69 +1,107 @@
 import AppKit
 
-/// Vector artwork for the compact status item and the app icon.
+private typealias Point = (CGFloat, CGFloat)
+
+private func curve(_ start: Point, _ segments: [(Point, Point, Point)],
+                   closed: Bool = false) -> CGPath {
+    let path = CGMutablePath()
+    path.move(to: CGPoint(x: start.0, y: start.1))
+    for (a, b, end) in segments {
+        path.addCurve(to: CGPoint(x: end.0, y: end.1),
+                      control1: CGPoint(x: a.0, y: a.1),
+                      control2: CGPoint(x: b.0, y: b.1))
+    }
+    if closed { path.closeSubpath() }
+    return path
+}
+
+private func svgPath(_ path: CGPath) -> String {
+    func coordinate(_ p: CGPoint) -> String { String(format: "%.3f %.3f", p.x, p.y) }
+    var components: [String] = []
+    path.applyWithBlock { pointer in
+        let element = pointer.pointee
+        let p = element.points
+        switch element.type {
+        case .moveToPoint: components.append("M" + coordinate(p[0]))
+        case .addLineToPoint: components.append("L" + coordinate(p[0]))
+        case .addQuadCurveToPoint: components.append("Q" + coordinate(p[0]) + " " + coordinate(p[1]))
+        case .addCurveToPoint:
+            components.append("C" + coordinate(p[0]) + " " + coordinate(p[1]) + " " + coordinate(p[2]))
+        case .closeSubpath: components.append("Z")
+        @unknown default: break
+        }
+    }
+    return components.joined(separator: " ")
+}
+
+/// A simplified cloud and two gusts, drawn as a monochrome template for the status bar.
 enum WillowMark {
-    private static let blade: [(CGPoint, CGPoint, CGPoint)] = [
-        (.init(x: 111, y: 98), .init(x: 113, y: 67), .init(x: 133, y: 42)),
-        (.init(x: 146, y: 26), .init(x: 169, y: 26), .init(x: 186, y: 42)),
-        (.init(x: 203, y: 57), .init(x: 207, y: 75), .init(x: 192, y: 85)),
-        (.init(x: 181, y: 93), .init(x: 168, y: 91), .init(x: 156, y: 101)),
-        (.init(x: 146, y: 108), .init(x: 145, y: 120), .init(x: 144, y: 128)),
-        (.init(x: 132, y: 130), .init(x: 122, y: 128), .init(x: 117, y: 121))
-    ]
-    private static let start = CGPoint(x: 117, y: 121)
+    static let size = NSSize(width: 20, height: 16)
 
-    private static func rotated(_ p: CGPoint, by index: Int) -> CGPoint {
-        let angle = CGFloat(index) * 2 * .pi / 3
-        return CGPoint(x: 128 + (p.x - 128) * cos(angle) - (p.y - 128) * sin(angle),
-                       y: 128 + (p.x - 128) * sin(angle) + (p.y - 128) * cos(angle))
-    }
+    private static let cloud: CGPath = {
+        let body = CGMutablePath()
+        body.addPath(curve((3.3, 12.4), [
+            ((1.4, 12.4), (0.5, 11.0), (0.5, 9.5)),
+            ((0.5, 8.2), (1.2, 7.2), (2.3, 6.8)),
+            ((2.3, 4.7), (3.7, 3.1), (5.6, 3.1)),
+            ((7.1, 3.1), (8.1, 3.9), (8.6, 5.0)),
+            ((10.4, 5.0), (11.6, 6.0), (11.6, 7.3)),
+            ((11.6, 8.0), (11.2, 8.4), (10.6, 8.7)),
+            ((11.1, 9.4), (10.8, 10.3), (10.2, 10.7)),
+            ((9.9, 12.2), (8.7, 12.9), (7.2, 12.9)),
+            ((6.3, 12.9), (5.7, 12.6), (5.2, 12.3)),
+            ((4.6, 12.5), (3.9, 12.5), (3.3, 12.4))
+        ], closed: true))
+        let eye = curve((6.6, 7.6), [
+            ((7.3, 7.0), (8.3, 7.0), (8.9, 7.8))
+        ])
+        body.addPath(eye.copy(strokingWithWidth: 1.05, lineCap: .round, lineJoin: .round, miterLimit: 4))
+        body.addEllipse(in: CGRect(x: 8.8, y: 9.0, width: 1.25, height: 1.1))
+        return body
+    }()
 
-    private static func bladePath(in rect: NSRect, start: CGPoint,
-                                  curves: [(CGPoint, CGPoint, CGPoint)]) -> NSBezierPath {
-        let path = NSBezierPath()
-        func point(_ p: CGPoint) -> NSPoint {
-            NSPoint(x: rect.minX + p.x * rect.width / 256, y: rect.maxY - p.y * rect.height / 256)
-        }
-        for index in 0..<3 {
-            path.move(to: point(rotated(start, by: index)))
-            for (a, b, end) in curves {
-                path.curve(to: point(rotated(end, by: index)),
-                           controlPoint1: point(rotated(a, by: index)), controlPoint2: point(rotated(b, by: index)))
+    private static let gusts = [
+        curve((11.9, 9.4), [
+            ((14.2, 9.4), (17.2, 9.4), (18.2, 8.4)),
+            ((19.2, 7.4), (18.7, 6.2), (17.6, 6.1)),
+            ((16.9, 6.0), (16.4, 6.3), (16.3, 6.8))
+        ]),
+        curve((11.5, 11.2), [
+            ((13.6, 11.2), (16.8, 11.3), (17.2, 12.6)),
+            ((17.6, 14.0), (15.4, 14.4), (15.0, 13.1))
+        ])
+    ].map { $0.copy(strokingWithWidth: 1.25, lineCap: .round, lineJoin: .round, miterLimit: 4) }
+
+    static func image(height: CGFloat) -> NSImage {
+        let scale = height / size.height
+        let image = NSImage(size: NSSize(width: size.width * scale, height: height), flipped: false) { rect in
+            guard let context = NSGraphicsContext.current?.cgContext else { return false }
+            context.saveGState()
+            context.translateBy(x: rect.minX, y: rect.maxY)
+            context.scaleBy(x: rect.width / size.width, y: -rect.height / size.height)
+            context.setFillColor(NSColor.black.cgColor)
+            context.addPath(cloud)
+            context.fillPath(using: .evenOdd)
+            for gust in gusts {
+                context.addPath(gust)
+                context.fillPath()
             }
-            path.close()
-        }
-        return path
-    }
-
-    static func image(size: CGFloat, template: Bool, color: NSColor = .black) -> NSImage {
-        let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
-            (template ? NSColor.black : color).setFill()
-            let artwork = rect.insetBy(dx: -size * 0.065, dy: -size * 0.065)
-            bladePath(in: artwork, start: start, curves: blade).fill()
-            NSBezierPath(ovalIn: artwork.insetBy(dx: artwork.width * 106 / 256, dy: artwork.height * 106 / 256)).fill()
+            context.restoreGState()
             return true
         }
-        image.isTemplate = template
-        image.accessibilityDescription = "柳风风扇"
+        image.isTemplate = true
+        image.accessibilityDescription = "柳风云朵吹风"
         return image
     }
 
-    private static func svgBlades(start: CGPoint, curves: [(CGPoint, CGPoint, CGPoint)], fill: String) -> String {
-        func coordinate(_ p: CGPoint) -> String { String(format: "%.3f %.3f", p.x, p.y) }
-        return (0..<3).map { index in
-            let first = coordinate(rotated(start, by: index))
-            let tail = curves.map { a, b, end in
-                "C" + [a, b, end].map { coordinate(rotated($0, by: index)) }.joined(separator: " ")
-            }.joined(separator: " ")
-            return "<path d=\"M\(first) \(tail) Z\" fill=\"\(fill)\"/>"
-        }.joined()
-    }
-
     static var svg: String {
-        let blades = svgBlades(start: start, curves: blade, fill: "#000000")
-        return "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 256 256\" width=\"256\" height=\"256\">\(blades)<circle cx=\"128\" cy=\"128\" r=\"22\"/></svg>\n"
+        let paths = gusts.map { "<path d=\"\(svgPath($0))\"/>" }.joined()
+        return """
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" viewBox="0 0 20 16">
+        <path fill-rule="evenodd" d="\(svgPath(cloud))"/>\(paths)
+        </svg>
+        """ + "\n"
     }
-
 }
 
 /// The cloud and gust use the same outlines in Icon Composer and legacy builds.
@@ -73,24 +111,10 @@ enum WillowAppMark {
     private static let ink: UInt32 = 0x126C73
     private static let cloudTint: UInt32 = 0xDFEFE7
     private static let tileTint: UInt32 = 0xF8F0DD
-    private typealias Point = (CGFloat, CGFloat)
 
     private struct Artwork {
         let color: UInt32
         let path: CGPath
-    }
-
-    private static func curve(_ start: Point, _ segments: [(Point, Point, Point)],
-                              closed: Bool = false) -> CGPath {
-        let path = CGMutablePath()
-        path.move(to: CGPoint(x: start.0, y: start.1))
-        for (a, b, end) in segments {
-            path.addCurve(to: CGPoint(x: end.0, y: end.1),
-                          control1: CGPoint(x: a.0, y: a.1),
-                          control2: CGPoint(x: b.0, y: b.1))
-        }
-        if closed { path.closeSubpath() }
-        return path
     }
 
     private static func line(_ path: CGPath, width: CGFloat) -> Artwork {
@@ -183,23 +207,8 @@ enum WillowAppMark {
     }
 
     private static func svg(_ art: [Artwork]) -> String {
-        func coordinate(_ p: CGPoint) -> String { String(format: "%.3f %.3f", p.x, p.y) }
         let paths = art.map { layer in
-            var components: [String] = []
-            layer.path.applyWithBlock { pointer in
-                let element = pointer.pointee
-                let p = element.points
-                switch element.type {
-                case .moveToPoint: components.append("M" + coordinate(p[0]))
-                case .addLineToPoint: components.append("L" + coordinate(p[0]))
-                case .addQuadCurveToPoint: components.append("Q" + coordinate(p[0]) + " " + coordinate(p[1]))
-                case .addCurveToPoint:
-                    components.append("C" + coordinate(p[0]) + " " + coordinate(p[1]) + " " + coordinate(p[2]))
-                case .closeSubpath: components.append("Z")
-                @unknown default: break
-                }
-            }
-            return "<path fill=\"\(String(format: "#%06X", layer.color))\" d=\"\(components.joined(separator: " "))\"/>"
+            "<path fill=\"\(String(format: "#%06X", layer.color))\" d=\"\(svgPath(layer.path))\"/>"
         }.joined()
         let viewBox = "\(sourceOrigin) \(sourceOrigin) \(sourceSize) \(sourceSize)"
         return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1024\" height=\"1024\" viewBox=\"\(viewBox)\">\(paths)</svg>\n"
