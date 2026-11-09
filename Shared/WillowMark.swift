@@ -85,45 +85,73 @@ enum WillowAppMark {
         ])
     ]
 
-    private static let outlines = contours.map { start, lineEnd, curves in
+    private static let centerlines = contours.map { start, lineEnd, curves in
         let stroke = CGMutablePath()
         stroke.move(to: start)
         stroke.addLine(to: lineEnd)
         for (a, b, end) in curves { stroke.addCurve(to: end, control1: a, control2: b) }
-        return stroke.copy(strokingWithWidth: 45, lineCap: .round, lineJoin: .round, miterLimit: 4)
+        return stroke
+    }
+
+    // An offset edge gives the glaze height. Narrower strokes shift towards the light.
+    private static let relief: [(color: UInt32, paths: [CGPath])] = [
+        (45.0, 9.0, 0x2A5442),
+        (45.0, 0.0, 0xA9B89E),
+        (36.0, -3.0, 0xF0E6CD),
+        (12.0, -9.0, 0xFFF9E9)
+    ].map { (width: CGFloat, offset: CGFloat, color: UInt32) in
+        let paths = centerlines.map { line in
+            let outline = line.copy(strokingWithWidth: width, lineCap: .round, lineJoin: .round, miterLimit: 4)
+            var shift = CGAffineTransform(translationX: 0, y: offset)
+            return outline.copy(using: &shift) ?? outline
+        }
+        return (color, paths)
     }
 
     static func draw(in rect: CGRect, context: CGContext) {
         context.saveGState()
         context.translateBy(x: rect.minX, y: rect.maxY)
         context.scaleBy(x: rect.width / canvasSize, y: -rect.height / canvasSize)
-        context.setFillColor(NSColor(srgbRed: 246 / 255, green: 239 / 255, blue: 222 / 255, alpha: 1).cgColor)
-        for outline in outlines {
-            context.addPath(outline)
+        for (index, pass) in relief.enumerated() {
+            context.saveGState()
+            if index == 0 {
+                context.setShadow(offset: CGSize(width: 0, height: -4), blur: 6,
+                                  color: NSColor.black.withAlphaComponent(0.26).cgColor)
+            }
+            let hex = pass.color
+            let color = NSColor(srgbRed: CGFloat((hex >> 16) & 255) / 255,
+                                green: CGFloat((hex >> 8) & 255) / 255,
+                                blue: CGFloat(hex & 255) / 255, alpha: 1)
+            context.setFillColor(color.cgColor)
+            for path in pass.paths { context.addPath(path) }
             context.fillPath()
+            context.restoreGState()
         }
         context.restoreGState()
     }
 
     static var composerSVG: String {
         func coordinate(_ p: CGPoint) -> String { String(format: "%.3f %.3f", p.x, p.y) }
-        let elements = outlines.map { outline in
-            var components: [String] = []
-            outline.applyWithBlock { pointer in
-                let element = pointer.pointee
-                let points = element.points
-                switch element.type {
-                case .moveToPoint: components.append("M" + coordinate(points[0]))
-                case .addLineToPoint: components.append("L" + coordinate(points[0]))
-                case .addQuadCurveToPoint:
-                    components.append("Q" + coordinate(points[0]) + " " + coordinate(points[1]))
-                case .addCurveToPoint:
-                    components.append("C" + coordinate(points[0]) + " " + coordinate(points[1]) + " " + coordinate(points[2]))
-                case .closeSubpath: components.append("Z")
-                @unknown default: break
+        let elements = relief.flatMap { pass in
+            let fill = String(format: "#%06X", pass.color)
+            return pass.paths.map { outline in
+                var components: [String] = []
+                outline.applyWithBlock { pointer in
+                    let element = pointer.pointee
+                    let points = element.points
+                    switch element.type {
+                    case .moveToPoint: components.append("M" + coordinate(points[0]))
+                    case .addLineToPoint: components.append("L" + coordinate(points[0]))
+                    case .addQuadCurveToPoint:
+                        components.append("Q" + coordinate(points[0]) + " " + coordinate(points[1]))
+                    case .addCurveToPoint:
+                        components.append("C" + coordinate(points[0]) + " " + coordinate(points[1]) + " " + coordinate(points[2]))
+                    case .closeSubpath: components.append("Z")
+                    @unknown default: break
+                    }
                 }
+                return "<path fill=\"\(fill)\" d=\"\(components.joined(separator: " "))\"/>"
             }
-            return "<path fill=\"#F6EFDE\" d=\"\(components.joined(separator: " "))\"/>"
         }.joined()
         return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1024\" height=\"1024\" viewBox=\"0 0 1024 1024\">\(elements)</svg>\n"
     }
