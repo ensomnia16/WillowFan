@@ -45,13 +45,13 @@ func dynamic(_ light: NSColor, _ dark: NSColor) -> NSColor {
 }
 
 enum Palette {
-    static let ground = dynamic(rgb(0xF5F6F4), rgb(0x1E1F1E))
-    static let card = dynamic(rgb(0xFFFFFF), rgb(0x2B2D2B))
-    static let fill = dynamic(rgb(0xE9EBE6), rgb(0x3A3D3A))
-    static let hair = dynamic(rgb(0xE2E4DF), rgb(0x3A3C3A))
-    static let accent = dynamic(rgb(0x357A50), rgb(0x5FB480))
-    static let accentSoft = dynamic(rgb(0xE3F0E7), rgb(0x5FB480, 0.18))
-    static let accentText = dynamic(rgb(0x2F6E4A), rgb(0x8FD3A8))
+    static let ground = dynamic(rgb(0xF3F6FB), rgb(0x171D28))
+    static let card = dynamic(rgb(0xFFFFFF), rgb(0x222C3B))
+    static let fill = dynamic(rgb(0xE8EDF5), rgb(0x354258))
+    static let hair = dynamic(rgb(0xDEE6F1), rgb(0x3B4960))
+    static let accent = dynamic(rgb(0x5B8EE6), rgb(0x91B8FF))
+    static let accentSoft = dynamic(rgb(0xEDF3FF), rgb(0x91B8FF, 0.14))
+    static let accentText = dynamic(rgb(0x365EAA), rgb(0xBCD3FF))
 
     /// Cool blue below 55 °C, then yellow, orange and red as the hottest sensor climbs.
     static func heat(_ temperature: Double?) -> NSColor {
@@ -126,9 +126,9 @@ func fillWidth(_ stack: NSStackView) {
     for view in stack.arrangedSubviews { view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true }
 }
 
-/// Approved concept A: two willow leaves enclosing recirculating airflow.
+/// User-approved W2 rotor mark, shared with the menu-bar family.
 func leafIcon(size: CGFloat, template: Bool) -> NSImage {
-    WillowMark.image(size: size, template: template, color: Palette.accent)
+    willowRotorImage(size: size, template: template, color: Palette.accent)
 }
 
 // MARK: - Model
@@ -168,12 +168,13 @@ final class BackgroundView: NSView {
 }
 
 class CardView: NSView {
-    var radius: CGFloat = 12
+    var radius: CGFloat = 18
+    var fillColor: NSColor = Palette.card { didSet { needsDisplay = true } }
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: radius, yRadius: radius)
-        Palette.card.setFill()
+        fillColor.setFill()
         path.fill()
         Palette.hair.setStroke()
         path.lineWidth = 1
@@ -195,7 +196,14 @@ final class SeparatorLine: NSView {
 /// Capsule showing whether 柳风 is currently driving the fans.
 final class StatusPill: NSView {
     var active = false { didSet { needsDisplay = true } }
-    var text = "系统自动" { didSet { invalidateIntrinsicContentSize(); needsDisplay = true } }
+    var text = "系统自动" { didSet {
+        invalidateIntrinsicContentSize()
+        superview?.invalidateIntrinsicContentSize()
+        setAccessibilityElement(true)
+        setAccessibilityRole(.staticText)
+        setAccessibilityLabel(text)
+        needsDisplay = true
+    } }
     var fontSize: CGFloat = 12 { didSet { invalidateIntrinsicContentSize(); needsDisplay = true } }
 
     private var attributes: [NSAttributedString.Key: Any] {
@@ -204,18 +212,18 @@ final class StatusPill: NSView {
     }
 
     override var intrinsicContentSize: NSSize {
-        NSSize(width: ceil((text as NSString).size(withAttributes: attributes).width) + 30, height: fontSize + 10)
+        NSSize(width: ceil((text as NSString).size(withAttributes: attributes).width) + 38, height: fontSize + 14)
     }
 
     override func draw(_ dirtyRect: NSRect) {
         let capsule = NSBezierPath(roundedRect: bounds, xRadius: bounds.height / 2, yRadius: bounds.height / 2)
         (active ? Palette.accentSoft : Palette.fill).setFill()
         capsule.fill()
-        let dot = NSBezierPath(ovalIn: NSRect(x: 10, y: bounds.midY - 3.5, width: 7, height: 7))
+        let dot = NSBezierPath(ovalIn: NSRect(x: 12, y: bounds.midY - 3, width: 6, height: 6))
         (active ? Palette.accent : NSColor.secondaryLabelColor).setFill()
         dot.fill()
         let size = (text as NSString).size(withAttributes: attributes)
-        (text as NSString).draw(at: NSPoint(x: 22, y: bounds.midY - size.height / 2), withAttributes: attributes)
+        (text as NSString).draw(at: NSPoint(x: 25, y: bounds.midY - size.height / 2), withAttributes: attributes)
     }
 
     override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); needsDisplay = true }
@@ -243,7 +251,7 @@ final class ChoiceButton: NSButton {
     override var isEnabled: Bool { didSet { needsDisplay = true } }
 
     override func draw(_ dirtyRect: NSRect) {
-        let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 8, yRadius: 8)
+        let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 10, yRadius: 10)
         if isChosen { Palette.accentSoft.setFill(); path.fill() }
         else if isHighlighted { Palette.fill.setFill(); path.fill() }
         (isChosen ? Palette.accent : Palette.hair).setStroke()
@@ -362,7 +370,7 @@ final class BarView: NSView {
 }
 
 final class FanCardView: CardView {
-    private let fanGlyph = NSImageView(image: NSImage(systemSymbolName: "fanblades", accessibilityDescription: "风扇")!)
+    private let fanGlyph = NSImageView(image: leafIcon(size: 34, template: true))
     private let nameLabel = label("左侧风扇", size: 12, color: .secondaryLabelColor)
     private let speedLabel = NSTextField(labelWithString: "")
     private let detailLabel = label("等待风扇读数", size: 11, color: .secondaryLabelColor)
@@ -568,7 +576,7 @@ final class FanController: NSViewController {
     let statusPill = StatusPill()
 
     private let tabView = NSTabView()
-    private let temperatureLabel = numberLabel("—°", size: 64)
+    private let temperatureLabel = numberLabel("—°", size: 52)
     private let heroDetail = label("传感器 —", size: 12, color: .secondaryLabelColor)
     private let leftFan = FanCardView(name: "风扇 1")
     private let rightFan = FanCardView(name: "风扇 2")
@@ -577,7 +585,7 @@ final class FanController: NSViewController {
     private let performance = PerformanceController()
     private let switchControl = NSSwitch()
     private let switchDetail = label("关闭后交还系统控制", size: 11, color: .secondaryLabelColor)
-    private let overviewCurves = CurveChoices()
+    private let overviewCurves = CurveChoices(buttonHeight: 36)
     private let chartCurves = CurveChoices(buttonHeight: 26)
     private let curveChart = CurveChart()
     private let curveDescription = label("更早升速，适合持续负载。", size: 11, color: .secondaryLabelColor)
@@ -602,7 +610,7 @@ final class FanController: NSViewController {
     }
 
     override func loadView() {
-        let root = BackgroundView(frame: NSRect(x: 0, y: 0, width: 760, height: 540))
+        let root = BackgroundView(frame: NSRect(x: 0, y: 0, width: 880, height: 620))
         tabView.tabViewType = .noTabsNoBorder
         tabView.drawsBackground = false
         for (title, page) in [("概览", makeOverview()), ("曲线", makeCurvePage()), ("进程", makeProcessPage())] {
@@ -643,7 +651,8 @@ final class FanController: NSViewController {
         let page = NSView()
 
         let hero = CardView()
-        let heroStack = vstack([label("最高温度", size: 12, color: .secondaryLabelColor), temperatureLabel, heroDetail], spacing: 4)
+        hero.fillColor = Palette.accentSoft
+        let heroStack = vstack([label("最高温度", size: 12, color: Palette.accentText), temperatureLabel, heroDetail], spacing: 4)
         heroDetail.maximumNumberOfLines = 1
         heroDetail.lineBreakMode = .byTruncatingTail
         pin(heroStack, in: hero, insets(20))
@@ -663,9 +672,9 @@ final class FanController: NSViewController {
         let baseHeader = hstack([label("温度基准", size: 11, color: .secondaryLabelColor), spacer(), targetLabel])
         let baseBounds = hstack([label("更早升速", size: 10, color: .secondaryLabelColor), spacer(), effectiveLabel, spacer(),
                                  label("更安静", size: 10, color: .secondaryLabelColor)])
-        let curveLabel = label("曲线", size: 11, color: .secondaryLabelColor)
-        let controlStack = vstack([switchRow, SeparatorLine(), curveLabel, overviewCurves,
-                                   SeparatorLine(), baseHeader, slider, baseBounds], spacing: 10)
+        let curveLabel = label("散热模式", size: 12, weight: .medium, color: .secondaryLabelColor)
+        let controlStack = vstack([switchRow, SeparatorLine(), curveLabel, overviewCurves, curveDescription,
+                                   SeparatorLine(), baseHeader, slider, baseBounds], spacing: 12)
         controlStack.setCustomSpacing(14, after: switchRow)
         controlStack.setCustomSpacing(6, after: curveLabel)
         controlStack.setCustomSpacing(14, after: overviewCurves)
@@ -679,12 +688,18 @@ final class FanController: NSViewController {
             controlStack.trailingAnchor.constraint(equalTo: controlHolder.trailingAnchor),
             controlStack.topAnchor.constraint(equalTo: controlHolder.topAnchor)
         ])
-        pin(controlHolder, in: controls, insets(16))
+        pin(controlHolder, in: controls, insets(20))
 
-        let fanRow = NSStackView(views: [leftFan, rightFan])
+        let fanRow = NSStackView(views: [hero, leftFan, rightFan])
         fanRow.orientation = .horizontal
         fanRow.distribution = .fillEqually
         fanRow.spacing = 16
+        for card in [hero, leftFan, rightFan] as [NSView] {
+            NSLayoutConstraint.activate([
+                card.topAnchor.constraint(equalTo: fanRow.topAnchor),
+                card.bottomAnchor.constraint(equalTo: fanRow.bottomAnchor)
+            ])
+        }
 
         let sensorCard = CardView()
         let sensorHeader = hstack([label("温度传感器", size: 13, weight: .semibold), spacer(),
@@ -700,28 +715,25 @@ final class FanController: NSViewController {
             sensorStack.trailingAnchor.constraint(equalTo: sensorHolder.trailingAnchor),
             sensorStack.topAnchor.constraint(equalTo: sensorHolder.topAnchor)
         ])
-        pin(sensorHolder, in: sensorCard, NSEdgeInsets(top: 14, left: 16, bottom: 14, right: 16))
+        pin(sensorHolder, in: sensorCard, insets(20))
 
-        for view in [hero, controls, fanRow, sensorCard] as [NSView] {
+        for view in [controls, fanRow, sensorCard] as [NSView] {
             view.translatesAutoresizingMaskIntoConstraints = false
             page.addSubview(view)
         }
         NSLayoutConstraint.activate([
-            hero.leadingAnchor.constraint(equalTo: page.leadingAnchor, constant: 20),
-            hero.topAnchor.constraint(equalTo: page.topAnchor, constant: 20),
-            hero.widthAnchor.constraint(equalToConstant: 248),
-            controls.leadingAnchor.constraint(equalTo: hero.leadingAnchor),
-            controls.trailingAnchor.constraint(equalTo: hero.trailingAnchor),
-            controls.topAnchor.constraint(equalTo: hero.bottomAnchor, constant: 16),
-            controls.bottomAnchor.constraint(equalTo: page.bottomAnchor, constant: -20),
-            fanRow.leadingAnchor.constraint(equalTo: hero.trailingAnchor, constant: 16),
-            fanRow.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -20),
-            fanRow.topAnchor.constraint(equalTo: hero.topAnchor),
-            fanRow.heightAnchor.constraint(equalToConstant: 104),
-            sensorCard.leadingAnchor.constraint(equalTo: fanRow.leadingAnchor),
+            fanRow.leadingAnchor.constraint(equalTo: page.leadingAnchor, constant: 24),
+            fanRow.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -24),
+            fanRow.topAnchor.constraint(equalTo: page.topAnchor, constant: 24),
+            fanRow.heightAnchor.constraint(equalToConstant: 154),
+            controls.leadingAnchor.constraint(equalTo: fanRow.leadingAnchor),
+            controls.topAnchor.constraint(equalTo: fanRow.bottomAnchor, constant: 20),
+            controls.widthAnchor.constraint(equalToConstant: 300),
+            controls.bottomAnchor.constraint(equalTo: page.bottomAnchor, constant: -24),
+            sensorCard.leadingAnchor.constraint(equalTo: controls.trailingAnchor, constant: 20),
             sensorCard.trailingAnchor.constraint(equalTo: fanRow.trailingAnchor),
-            sensorCard.topAnchor.constraint(equalTo: fanRow.bottomAnchor, constant: 16),
-            sensorCard.bottomAnchor.constraint(equalTo: page.bottomAnchor, constant: -20)
+            sensorCard.topAnchor.constraint(equalTo: controls.topAnchor),
+            sensorCard.bottomAnchor.constraint(equalTo: controls.bottomAnchor)
         ])
         return page
     }
@@ -1287,7 +1299,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
     private var preferencesWindow: NSWindow!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        NSApp.setActivationPolicy(.regular)
         LoginItem.enableByDefaultOnce()
         UpdateManager.shared.start()
         let appMenu = NSMenu()
@@ -1320,18 +1332,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         NSApp.mainMenu = mainMenu
         NSApp.windowsMenu = windowMenu
 
-        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 540),
-                          styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
+        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 880, height: 620),
+                          styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = "柳风"
         window.contentViewController = controller
-        window.setContentSize(NSSize(width: 760, height: 540))
+        window.setContentSize(NSSize(width: 880, height: 620))
         let toolbar = NSToolbar(identifier: "WillowFanMain")
         toolbar.delegate = self
         toolbar.displayMode = .iconOnly
         toolbar.allowsUserCustomization = false
         toolbar.centeredItemIdentifier = .tabs
         window.toolbar = toolbar
-        window.toolbarStyle = .unified
+        window.toolbarStyle = .unifiedCompact
+        window.level = .normal
+        window.contentMinSize = NSSize(width: 840, height: 600)
+        window.setFrameAutosaveName("WillowFanStandalone")
         window.isReleasedWhenClosed = false
         window.collectionBehavior.insert(.moveToActiveSpace)
         window.center()
@@ -1360,13 +1375,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         quickPanel.onSetEnabled = { [weak self] enabled in self?.controller.setEnabled(enabled) }
         quickPanel.onCurve = { [weak self] curve in self?.controller.selectCurve(curve) }
 
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        statusItem.button?.image = leafIcon(size: 18, template: true)
-        statusItem.button?.toolTip = "柳风"
+        statusItem = NSStatusBar.system.statusItem(withLength: 16)
+        configureWillowMenuBarButton(statusItem)
+        statusItem.button?.image = willowMenuBarIcon(for: nil)
+        statusItem.button?.toolTip = "柳风 · 读取模式中"
+        statusItem.button?.setAccessibilityLabel("柳风 · 读取模式中")
         statusItem.button?.target = self
         statusItem.button?.action = #selector(togglePopover)
         controller.onSnapshot = { [weak self] snapshot in
             guard let self else { return }
+            let mode = WillowMenuBarMode(rawValue: snapshot.curve)
+            self.statusItem.button?.image = willowMenuBarIcon(for: mode)
+            let title = "柳风 · " + (mode?.title ?? "读取模式中")
+            self.statusItem.button?.toolTip = title
+            self.statusItem.button?.setAccessibilityLabel(title)
             if self.popover.isShown { self.quickPanel.update(snapshot) }
         }
         if UISettings.showMainWindowAtLaunch { showWindow() }
@@ -1382,7 +1404,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
         let item = NSToolbarItem(itemIdentifier: itemIdentifier)
         switch itemIdentifier {
         case .tabs: item.view = controller.tabControl; item.label = "页面"
-        case .status: item.view = controller.statusPill; item.label = "状态"; item.isBordered = false
+        case .status: item.view = ToolbarStatusView(pill: controller.statusPill); item.label = "状态"; item.isBordered = false
         default: return nil
         }
         return item
@@ -1390,6 +1412,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSToolbarDelegate {
 
     @objc private func showWindow() {
         popover.close()
+        if window.isMiniaturized { window.deminiaturize(nil) }
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         controller.refresh()
@@ -1462,14 +1485,15 @@ func renderPreview(_ arguments: [String]) -> Never {
         view = CleaningCoverView(frame: NSRect(x: 0, y: 0, width: 800, height: 500))
     case "menubar":
         let holder = BackgroundView(frame: NSRect(x: 0, y: 0, width: 72, height: 36))
-        let image = NSImageView(image: leafIcon(size: 36, template: true))
+        let mode = arguments.compactMap(WillowMenuBarMode.init(rawValue:)).first
+        let image = NSImageView(image: willowMenuBarIcon(for: mode))
         image.contentTintColor = .labelColor
-        image.frame = NSRect(x: 18, y: 0, width: 36, height: 36)
+        image.frame = NSRect(x: 28, y: 10, width: 16, height: 16)
         holder.addSubview(image)
         view = holder
     default:
         let controller = FanController()
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 540), styleMask: [.titled], backing: .buffered, defer: false)
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 880, height: 620), styleMask: [.titled], backing: .buffered, defer: false)
         window.contentViewController = controller
         controller.selectTab(["main": 0, "curve": 1, "process": 2][screen] ?? 0)
         if screen == "process" { controller.resetPerformanceRefreshTimer() }

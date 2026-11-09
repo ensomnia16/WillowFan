@@ -1,29 +1,41 @@
 import AppKit
 
+/// Packages the user-approved W2 artwork into the app's existing .icns route.
 @main
 struct MakeIcon {
     static func main() throws {
-        let destination = CommandLine.arguments[1]
-        let canvas = NSRect(x: 0, y: 0, width: 1024, height: 1024)
-        let image = NSImage(size: canvas.size, flipped: false) { _ in
-            let tile = NSBezierPath(roundedRect: canvas.insetBy(dx: 24, dy: 24), xRadius: 216, yRadius: 216)
-            NSColor(srgbRed: 35 / 255, green: 92 / 255, blue: 67 / 255, alpha: 1).setFill()
-            tile.fill()
-            NSColor(srgbRed: 245 / 255, green: 251 / 255, blue: 246 / 255, alpha: 1).setFill()
-            // Optical placement compensates for the symbol's asymmetric internal padding.
-            WillowMark.path(in: NSRect(x: 44, y: 64, width: 896, height: 896)).fill()
-            return true
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let asset = root.appendingPathComponent("Assets/WillowFan-W2.png")
+        guard let source = NSImage(contentsOf: asset),
+              let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 1024,
+                  pixelsHigh: 1024, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+                  isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),
+              let context = NSGraphicsContext(bitmapImageRep: bitmap) else {
+            throw NSError(domain: "WillowIcon", code: 1, userInfo: [NSLocalizedDescriptionKey: "Cannot load W2 artwork"])
         }
-        let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 1024, pixelsHigh: 1024,
-            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
-            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
         NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
-        image.draw(in: canvas)
+        NSGraphicsContext.current = context
+        context.imageInterpolation = .high
+        context.shouldAntialias = true
+        let bounds = NSRect(x: 96, y: 96, width: 832, height: 832)
+        let tile = NSBezierPath(roundedRect: bounds, xRadius: 182, yRadius: 182)
+        let shadow = NSShadow()
+        shadow.shadowColor = NSColor.black.withAlphaComponent(0.16)
+        shadow.shadowOffset = NSSize(width: 0, height: -6)
+        shadow.shadowBlurRadius = 14
+        shadow.set()
+        NSColor.white.setFill()
+        tile.fill()
+        NSShadow().set()
+        tile.addClip()
+        source.draw(in: bounds, from: .zero, operation: .copy, fraction: 1)
         NSGraphicsContext.restoreGraphicsState()
-        try bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: destination))
+        let normalized = bitmap.converting(to: .sRGB, renderingIntent: .default) ?? bitmap
+        let png = normalized.representation(using: .png, properties: [:])!
+        try png.write(to: URL(fileURLWithPath: CommandLine.arguments[1]))
         if CommandLine.arguments.count > 2 {
-            try WillowMark.svg.write(toFile: CommandLine.arguments[2], atomically: true, encoding: .utf8)
+            let mark = try Data(contentsOf: root.appendingPathComponent("Assets/WillowMark-W2.svg"))
+            try mark.write(to: URL(fileURLWithPath: CommandLine.arguments[2]))
         }
     }
 }

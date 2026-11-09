@@ -47,7 +47,7 @@ cat > "$CONTENTS/Info.plist" <<PLIST
 <key>CFBundleShortVersionString</key><string>$VERSION</string>
 <key>CFBundleVersion</key><string>$BUILD_NUMBER</string>
 <key>CFBundleIconFile</key><string>WillowFan</string>
-<key>LSUIElement</key><true/>
+<key>LSUIElement</key><false/>
 <key>NSHumanReadableCopyright</key><string>© 2026 ensomnia16</string>
 <key>CFBundleDevelopmentRegion</key><string>zh_CN</string>
 <key>SUFeedURL</key><string>https://github.com/ensomnia16/WillowFan/releases/latest/download/appcast.xml</string>
