@@ -10,15 +10,10 @@ struct MakeIcon {
                 NSColor(srgbRed: r / 255, green: g / 255, blue: b / 255, alpha: 1)
             }
             let tile = NSBezierPath(roundedRect: canvas.insetBy(dx: 100, dy: 100), xRadius: 177, yRadius: 177)
-            NSGradient(starting: color(40, 89, 103), ending: color(15, 47, 59))?.draw(in: tile, angle: -75)
-            let artwork = NSRect(x: 177, y: 177, width: 670, height: 670)
-            color(232, 248, 245).setFill()
-            WillowMark.path(in: artwork, layer: 0).fill()
-            WillowMark.path(in: artwork, layer: 2).fill()
-            color(131, 200, 196).setFill()
-            NSBezierPath(ovalIn: artwork.insetBy(dx: artwork.width * 115 / 256, dy: artwork.height * 115 / 256)).fill()
-            color(103, 171, 168).setFill()
-            WillowMark.path(in: artwork, layer: 1).fill()
+            NSGradient(starting: color(247, 251, 255), ending: color(222, 232, 247))?.draw(in: tile, angle: -75)
+            let artwork = NSRect(x: 205, y: 205, width: 614, height: 614)
+            color(40, 90, 181).setFill()
+            WillowMark.appPath(in: artwork).fill()
             return true
         }
         let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 1024, pixelsHigh: 1024,
