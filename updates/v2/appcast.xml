@@ -4,23 +4,22 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>柳风</title>
         <item>
-            <title>1.13.0</title>
-            <pubDate>Mon, 09 Nov 2026 18:00:56 +0800</pubDate>
+            <title>1.13.1</title>
+            <pubDate>Mon, 09 Nov 2026 18:32:16 +0800</pubDate>
             <link>https://github.com/ensomnia16/WillowFan</link>
-            <sparkle:version>21</sparkle:version>
-            <sparkle:shortVersionString>1.13.0</sparkle:shortVersionString>
+            <sparkle:version>22</sparkle:version>
+            <sparkle:shortVersionString>1.13.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description sparkle:format="markdown"><![CDATA[柳风 1.13.0
+            <description sparkle:format="markdown"><![CDATA[柳风 1.13.1
 
-- 重做散热概览与菜单栏面板，集中展示近两分钟的温度趋势、风扇转速和最热传感器。
-- 支持从菜单栏打开完整传感器列表，并按编号搜索。
-- 主图标和菜单栏采用云朵吹风图案，菜单栏图标随系统外观切换。
+- 修复散热概览标题与读数之间出现大片空白的问题。
+- 平时只在菜单栏运行。打开主窗口或设置时显示 Dock 图标，关闭窗口后自动隐藏。
 ]]></description>
-            <enclosure url="https://github.com/ensomnia16/WillowFan/releases/download/v1.13.0/WillowFan-1.13.0-arm64.zip" length="3253800" type="application/octet-stream" sparkle:edSignature="pBtWjTNnOcZ7xXEDx/T+gTYMUlyqBQp7Ye8qINdexE4MUlasGLmRdRTrbgeAJRq+JGZnA1Nl6vhyy/LXc1k7BQ=="></enclosure>
+            <enclosure url="https://github.com/ensomnia16/WillowFan/releases/download/v1.13.1/WillowFan-1.13.1-arm64.zip" length="3255367" type="application/octet-stream" sparkle:edSignature="l5seVSaYSOtQLbBTeMKBA6hxryzQ/VwKR4plKXqXU5KhaowZpcl+l6Tjvvsb6UAksnA4TjTew7eyUKtO/HQNAQ=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: fbgZprKQWBgRbSTy+Jbl4ipPg3DHI8CzYgP8L9Pb1J6zUKhJ7X5vW2fP6jvju0MjyKZQ5O6Y7sK5WJoqMGGcBw==
-length: 1570
+edSignature: NK92pH08zoF7fNYwBCRtJ/hkelaDdYZ5TuWFuwCDxdMNbiYCOG6/vjbf/e7gy8mCDPMld3wxIgUIb0sOIA57DA==
+length: 1474
 -->
