@@ -62,7 +62,7 @@ $ICON_NAME_PLIST
 <key>LSUIElement</key><false/>
 <key>NSHumanReadableCopyright</key><string>© 2026 ensomnia16</string>
 <key>CFBundleDevelopmentRegion</key><string>zh_CN</string>
-<key>SUFeedURL</key><string>https://github.com/ensomnia16/WillowFan/releases/latest/download/appcast.xml</string>
+<key>SUFeedURL</key><string>https://raw.githubusercontent.com/ensomnia16/WillowFan/main/updates/v2/appcast.xml</string>
 <key>SUPublicEDKey</key><string>$PUBLIC_KEY</string>
 <key>SUEnableAutomaticChecks</key><true/>
 <key>SUAutomaticallyUpdate</key><true/>

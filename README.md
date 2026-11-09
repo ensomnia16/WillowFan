@@ -13,7 +13,7 @@
 
 ## 安装
 
-从 [Releases](https://github.com/ensomnia16/WillowFan/releases/latest) 下载 `WillowFan-*-arm64.zip`，解压后把柳风移到“应用程序”。要求 macOS 13 或更新系统。
+从 [Releases](https://github.com/ensomnia16/WillowFan/releases) 下载 `WillowFan-*-arm64.zip`，解压后把柳风移到“应用程序”。要求 macOS 13 或更新系统。
 
 首次启用风扇控制时，点击面板中的“安装服务…”，完成系统管理员授权。之后日常调节无需重复输入密码。擦拭模式首次使用时，需要在“系统设置 → 隐私与安全性 → 辅助功能”中允许柳风；如果系统另行要求输入监控，按提示允许后重试。
 
@@ -51,7 +51,7 @@ open build.noindex/柳风.app
 bash Scripts/release.sh
 ```
 
-首次在新的维护机器上发布，需要运行 `.deps.noindex/Sparkle/bin/generate_keys --account com.willowfan.app` 生成密钥，并将公钥放入 `UPDATE_PUBLIC_KEY`。现有发布者应迁移原签名密钥，不能随意重新生成。私钥保留在 macOS 钥匙串中，不进入仓库或发布包。脚本生成签名安装包和签名 `appcast.xml`，随后创建 GitHub Release。
+首次在新的维护机器上发布，需要运行 `.deps.noindex/Sparkle/bin/generate_keys --account com.willowfan.app.v2` 生成密钥，并将公钥放入 `UPDATE_PUBLIC_KEY`。现有发布者应迁移原签名密钥，不能随意重新生成。私钥保留在 macOS 钥匙串中，不进入仓库或发布包。脚本创建 GitHub Release，回验发布附件，再更新 `main` 上的 `updates/v2/appcast.xml`。1.13.0 使用这个更新源。旧版升级需要安装一次内置新公钥的版本。
 
 ## 第三方与设计参考
 
