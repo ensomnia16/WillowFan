@@ -215,7 +215,7 @@
 		46D50000000000000000001F = {
 			isa = XCBuildConfiguration;
 			name = "Debug";
-			buildSettings = { PRODUCT_NAME = "柳风设计预览"; PRODUCT_BUNDLE_IDENTIFIER = "com.willowfan.app.design-review"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_FILE = "Assets/DesignReview-Info.plist"; ASSETCATALOG_COMPILER_APPICON_NAME = "WillowFan"; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = "Manual"; FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/.deps.noindex/Sparkle"; LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks"; OTHER_LDFLAGS = ( "$(inherited)", "-framework", "Sparkle", ); CURRENT_PROJECT_VERSION = 19; MARKETING_VERSION = "1.12.2"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; ENABLE_DEBUG_DYLIB = "NO"; };
+			buildSettings = { PRODUCT_NAME = "柳风设计预览"; PRODUCT_BUNDLE_IDENTIFIER = "com.willowfan.app.design-review"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_FILE = "Assets/DesignReview-Info.plist"; ASSETCATALOG_COMPILER_APPICON_NAME = "WillowFan"; CODE_SIGN_IDENTITY = "-"; CODE_SIGN_STYLE = "Manual"; FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/.deps.noindex/Sparkle"; LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks"; OTHER_LDFLAGS = ( "$(inherited)", "-framework", "Sparkle", ); CURRENT_PROJECT_VERSION = 20; MARKETING_VERSION = "1.13.0"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; ENABLE_DEBUG_DYLIB = "NO"; };
 		};
 		46D500000000000000000020 = {
 			isa = XCConfigurationList;
