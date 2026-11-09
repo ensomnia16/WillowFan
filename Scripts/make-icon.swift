@@ -10,10 +10,9 @@ struct MakeIcon {
                 NSColor(srgbRed: r / 255, green: g / 255, blue: b / 255, alpha: 1)
             }
             let tile = NSBezierPath(roundedRect: canvas.insetBy(dx: 100, dy: 100), xRadius: 177, yRadius: 177)
-            NSGradient(starting: color(247, 251, 255), ending: color(222, 232, 247))?.draw(in: tile, angle: -75)
-            let artwork = NSRect(x: 205, y: 205, width: 614, height: 614)
-            color(40, 90, 181).setFill()
-            WillowMark.appPath(in: artwork).fill()
+            NSGradient(starting: color(63, 94, 143), ending: color(21, 57, 104))?.draw(in: tile, angle: -75)
+            guard let context = NSGraphicsContext.current?.cgContext else { return false }
+            WillowAppMark.draw(in: tile.bounds, context: context)
             return true
         }
         let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 1024, pixelsHigh: 1024,
@@ -30,9 +29,7 @@ struct MakeIcon {
         if CommandLine.arguments.count > 3 {
             let folder = URL(fileURLWithPath: CommandLine.arguments[3], isDirectory: true)
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            for (name, svg) in WillowMark.composerLayers {
-                try svg.write(to: folder.appendingPathComponent(name), atomically: true, encoding: .utf8)
-            }
+            try WillowAppMark.composerSVG.write(to: folder.appendingPathComponent("Wind.svg"), atomically: true, encoding: .utf8)
         }
     }
 }

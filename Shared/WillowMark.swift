@@ -12,17 +12,6 @@ enum WillowMark {
     ]
     private static let start = CGPoint(x: 117, y: 121)
 
-    // Three swept blades leave a triangular opening at the center.
-    private static let appStart = CGPoint(x: 124, y: 113)
-    private static let appBlade: [(CGPoint, CGPoint, CGPoint)] = [
-        (.init(x: 105, y: 101), .init(x: 101, y: 76), .init(x: 111, y: 55)),
-        (.init(x: 125, y: 25), .init(x: 159, y: 10), .init(x: 190, y: 24)),
-        (.init(x: 193, y: 26), .init(x: 193, y: 28), .init(x: 189, y: 29)),
-        (.init(x: 165, y: 35), .init(x: 151, y: 49), .init(x: 152, y: 67)),
-        (.init(x: 153, y: 87), .init(x: 148, y: 106), .init(x: 137, y: 113)),
-        (.init(x: 132, y: 116), .init(x: 128, y: 116), .init(x: 124, y: 113))
-    ]
-
     private static func rotated(_ p: CGPoint, by index: Int) -> CGPoint {
         let angle = CGFloat(index) * 2 * .pi / 3
         return CGPoint(x: 128 + (p.x - 128) * cos(angle) - (p.y - 128) * sin(angle),
@@ -44,10 +33,6 @@ enum WillowMark {
             path.close()
         }
         return path
-    }
-
-    static func appPath(in rect: NSRect) -> NSBezierPath {
-        bladePath(in: rect, start: appStart, curves: appBlade)
     }
 
     static func image(size: CGFloat, template: Bool, color: NSColor = .black) -> NSImage {
@@ -79,9 +64,67 @@ enum WillowMark {
         return "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 256 256\" width=\"256\" height=\"256\">\(blades)<circle cx=\"128\" cy=\"128\" r=\"22\"/></svg>\n"
     }
 
-    static var composerLayers: [String: String] {
-        let header = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1024\" height=\"1024\" viewBox=\"-44 -44 344 344\">"
-        let blades = svgBlades(start: appStart, curves: appBlade, fill: "#285AB5")
-        return ["Rotor.svg": header + blades + "</svg>\n"]
+}
+
+/// The three open curves are outlined before export so Icon Composer and
+/// the legacy rasterizer use the same filled shapes.
+enum WillowAppMark {
+    private static let canvasSize: CGFloat = 1024
+    private static let contours: [(CGPoint, CGPoint, [(CGPoint, CGPoint, CGPoint)])] = [
+        (.init(x: 296, y: 429), .init(x: 528, y: 429), [
+            (.init(x: 598, y: 429), .init(x: 639, y: 387), .init(x: 628, y: 338)),
+            (.init(x: 620, y: 301), .init(x: 582, y: 287), .init(x: 548, y: 298))
+        ]),
+        (.init(x: 243, y: 515), .init(x: 688, y: 515), [
+            (.init(x: 743, y: 515), .init(x: 777, y: 480), .init(x: 765, y: 438)),
+            (.init(x: 756, y: 409), .init(x: 728, y: 394), .init(x: 700, y: 399))
+        ]),
+        (.init(x: 332, y: 602), .init(x: 555, y: 602), [
+            (.init(x: 625, y: 602), .init(x: 661, y: 644), .init(x: 650, y: 691)),
+            (.init(x: 641, y: 731), .init(x: 595, y: 744), .init(x: 564, y: 728))
+        ])
+    ]
+
+    private static let outlines = contours.map { start, lineEnd, curves in
+        let stroke = CGMutablePath()
+        stroke.move(to: start)
+        stroke.addLine(to: lineEnd)
+        for (a, b, end) in curves { stroke.addCurve(to: end, control1: a, control2: b) }
+        return stroke.copy(strokingWithWidth: 45, lineCap: .round, lineJoin: .round, miterLimit: 4)
+    }
+
+    static func draw(in rect: CGRect, context: CGContext) {
+        context.saveGState()
+        context.translateBy(x: rect.minX, y: rect.maxY)
+        context.scaleBy(x: rect.width / canvasSize, y: -rect.height / canvasSize)
+        context.setFillColor(NSColor(srgbRed: 230 / 255, green: 241 / 255, blue: 1, alpha: 1).cgColor)
+        for outline in outlines {
+            context.addPath(outline)
+            context.fillPath()
+        }
+        context.restoreGState()
+    }
+
+    static var composerSVG: String {
+        func coordinate(_ p: CGPoint) -> String { String(format: "%.3f %.3f", p.x, p.y) }
+        let elements = outlines.map { outline in
+            var components: [String] = []
+            outline.applyWithBlock { pointer in
+                let element = pointer.pointee
+                let points = element.points
+                switch element.type {
+                case .moveToPoint: components.append("M" + coordinate(points[0]))
+                case .addLineToPoint: components.append("L" + coordinate(points[0]))
+                case .addQuadCurveToPoint:
+                    components.append("Q" + coordinate(points[0]) + " " + coordinate(points[1]))
+                case .addCurveToPoint:
+                    components.append("C" + coordinate(points[0]) + " " + coordinate(points[1]) + " " + coordinate(points[2]))
+                case .closeSubpath: components.append("Z")
+                @unknown default: break
+                }
+            }
+            return "<path fill=\"#E6F1FF\" d=\"\(components.joined(separator: " "))\"/>"
+        }.joined()
+        return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1024\" height=\"1024\" viewBox=\"0 0 1024 1024\">\(elements)</svg>\n"
     }
 }

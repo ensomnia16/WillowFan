@@ -1,6 +1,6 @@
 # 柳风 WillowFan
 
-<img src="docs/images/app-icon.png" width="112" alt="柳风三叶风扇图标">
+<img src="docs/images/app-icon.png" width="112" alt="柳风风迹主图标">
 
 原生 macOS 菜单栏风扇工具，面向带风扇的 Apple Silicon Mac。
 

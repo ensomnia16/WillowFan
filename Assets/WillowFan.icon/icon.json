@@ -1,18 +1,18 @@
 {
   "fill": {
-    "automatic-gradient": "extended-srgb:0.88627,0.92157,0.96863,1.00000"
+    "automatic-gradient": "extended-srgb:0.08235,0.22353,0.40784,1.00000"
   },
   "groups": [
     {
       "layers": [
         {
-          "image-name": "Rotor.svg",
-          "name": "Swept Blades"
+          "image-name": "Wind.svg",
+          "name": "Wind"
         }
       ],
       "shadow": {
         "kind": "neutral",
-        "opacity": 0.12
+        "opacity": 0.13
       },
       "translucency": {
         "enabled": true,
